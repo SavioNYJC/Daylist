@@ -31,6 +31,6 @@ The database contains:
 
 Row Level Security (RLS) is enabled on these tables. Their policies are intended for authenticated users; accepted blends allow users to read some of each other's events and playlists.
 
-On signup, Supabase creates the auth user and the `on_auth_user_created` trigger inserts a matching `profiles` row. The current trigger inserts only `user_id`; it does not yet copy the submitted username into `profiles.username`.
+On signup, Supabase creates the auth user and the `on_auth_user_created` trigger inserts a matching `profiles` row. Apply `supabase/migrations/20261120234000_username_uniqueness.sql` in the Supabase SQL Editor to save the submitted username, enforce case-insensitive uniqueness, and enable the signup page's username-availability check.
 
-The schema, trigger, and RLS policies currently exist in the Supabase project, but there are no database migrations in this repository yet. Dashboard changes are not automatically saved to GitHub; migrations should be added when you want the backend setup to be reproducible.
+The original schema and RLS policies were configured in the Supabase project. Dashboard changes are not automatically saved to GitHub, so keep applying and saving future database changes as migrations in this repository.

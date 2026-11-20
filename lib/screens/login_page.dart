@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../utils/user_facing_error.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -21,13 +23,11 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
-      setState(() {
-        _message =
-            'Signed in as ${Supabase.instance.client.auth.currentUser?.email}';
-      });
+      Navigator.of(context).pop();
     } on AuthException catch (error) {
+      debugPrint('Login failed: $error');
       if (!mounted) return;
-      setState(() => _message = error.message);
+      setState(() => _message = userFacingError(error));
     }
   }
 
@@ -56,10 +56,7 @@ class _LoginPageState extends State<LoginPage> {
             decoration: const InputDecoration(labelText: 'Password'),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _login,
-            child: const Text('Log in'),
-          ),
+          ElevatedButton(onPressed: _login, child: const Text('Log in')),
           if (_message != null) Text(_message!),
         ],
       ),

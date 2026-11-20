@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'login_page.dart';
+import '../utils/user_facing_error.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -15,11 +18,31 @@ class _SignUpPageState extends State<SignUpPage> {
   String? _message;
 
   Future<void> _signUp() async {
+    final username = _username.text.trim();
+    if (username.isEmpty) {
+      setState(() => _message = 'Please enter a username.');
+      return;
+    }
+
     try {
+      final isUsernameAvailable = await Supabase.instance.client.rpc(
+        'is_username_available',
+        params: {'candidate_username': username},
+      );
+
+      if (!mounted) return;
+      if (isUsernameAvailable != true) {
+        setState(
+          () => _message = 'That username is already taken. Please choose another.',
+        );
+        return;
+      }
+
       final response = await Supabase.instance.client.auth.signUp(
         email: _email.text.trim(),
         password: _password.text,
-        data: {'username': _username.text.trim()},
+        emailRedirectTo: Uri.base.origin,
+        data: {'username': username},
       );
 
       if (!mounted) return;
@@ -29,8 +52,13 @@ class _SignUpPageState extends State<SignUpPage> {
             : 'Account created and signed in.';
       });
     } on AuthException catch (error) {
+      debugPrint('Sign up failed: $error');
       if (!mounted) return;
-      setState(() => _message = error.message);
+      setState(() => _message = userFacingError(error));
+    } on PostgrestException catch (error) {
+      debugPrint('Sign up profile creation failed: $error');
+      if (!mounted) return;
+      setState(() => _message = userFacingError(error));
     }
   }
 
@@ -67,6 +95,14 @@ class _SignUpPageState extends State<SignUpPage> {
           ElevatedButton(
             onPressed: _signUp,
             child: const Text('Create account'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+              );
+            },
+            child: const Text('Already have an account? Log in'),
           ),
           if (_message != null) Text(_message!),
         ],

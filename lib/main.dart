@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'screens/login_page.dart';
+import 'screens/profile_page.dart';
 import 'screens/sign_up_page.dart';
+import 'utils/user_facing_error.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,57 +20,77 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Todos', home: SignUpPage(),);
+    return const MaterialApp(title: 'Daylist', home: AuthGate());
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.todos});
-
-  final Future<List<Map<String, dynamic>>>? todos;
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  Widget build(BuildContext context) {
+    final auth = Supabase.instance.client.auth;
+
+    return StreamBuilder<AuthState>(
+      stream: auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Authentication issue')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      userFacingError(snapshot.error),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const LoginPage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Log in'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        final session = snapshot.data?.session ?? auth.currentSession;
+        if (session != null) {
+          return const HomePage();
+        }
+
+        return const SignUpPage();
+      },
+    );
+  }
 }
 
-class _HomePageState extends State<HomePage> {
-  late final Future<List<Map<String, dynamic>>> _todos =
-      widget.todos ?? Supabase.instance.client.from('todos').select();
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Todos')),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _todos,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Could not load todos: ${snapshot.error}'),
-              ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ProfilePage()),
             );
-          }
-
-          final todos = snapshot.data ?? const [];
-          if (todos.isEmpty) {
-            return const Center(child: Text('No todos found.'));
-          }
-
-          return ListView.builder(
-            itemCount: todos.length,
-            itemBuilder: (context, index) {
-              final todo = todos[index];
-              return ListTile(
-                title: Text(todo['name'] as String? ?? 'Untitled todo'),
-              );
-            },
-          );
-        },
+          },
+          child: const Text('Account information'),
+        ),
       ),
     );
   }
