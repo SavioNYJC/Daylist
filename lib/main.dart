@@ -1,3 +1,5 @@
+import 'package:daylist/homePage.dart';
+import 'package:daylist/welcomePage.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -95,3 +97,31 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+// void main() {
+//   runApp(
+//     MaterialApp(
+//       home: RootPage(),
+//       theme: ThemeData(brightness: Brightness.dark),
+//     ),
+//   );
+// }
+
+// class RootPage extends StatefulWidget {
+//   const new({super.key});
+
+//   @override
+//   State<RootPage> createState() => _RootPageState();
+// }
+
+// class _RootPageState extends State<RootPage> {
+//   bool _isLoggedIn = false;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     if (_isLoggedIn) {
+//       return HomePage();
+//     } else {
+//       return WelcomePage();
+//     }
+//   }
+// }
