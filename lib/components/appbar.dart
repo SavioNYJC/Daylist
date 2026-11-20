@@ -1,5 +1,4 @@
-import 'package:flutter/widgets.dart';
-import 'package:flutter_liquid_glass_plus/flutter_liquid_glass.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -25,11 +24,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Stack(
         children: [
           Positioned(
+            left: 24,
+            top: 70,
+            child: LiquidGlassLens(
+              child: IconButton(
+                onPressed: () {
+                  var navigator = Navigator.of(context);
+                  navigator.pop();
+                },
+                icon: const Icon(Icons.chevron_left, size: 30),
+              ),
+            ),
+          ),
+          Positioned(
             right: 24,
-            top: 24,
-            child: LGCard(
-              shape: LiquidRoundedRectangle(borderRadius: 28),
-              padding: EdgeInsets.zero,
+            top: 70,
+            child: LiquidGlassLens(
               child: IconButton(
                 onPressed: () {
                   // Open settings

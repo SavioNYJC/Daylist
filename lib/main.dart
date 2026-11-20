@@ -1,5 +1,7 @@
-import 'package:daylist/homePage.dart';
-import 'package:daylist/welcomePage.dart';
+import 'package:daylist/home_page.dart';
+import 'package:daylist/welcome_page.dart';
+import 'package:flutter/services.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
