@@ -1,6 +1,6 @@
 import 'package:app_links/app_links.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:daylist/home_page.dart';
+import 'package:daylist/screens/home_page.dart';
 import 'package:daylist/screens/welcome_page.dart';
 import 'package:daylist/utils/themes.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;

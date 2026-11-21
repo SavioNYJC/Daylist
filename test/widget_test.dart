@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:daylist/home_page.dart';
+import 'package:daylist/screens/home_page.dart';
 import 'package:daylist/main.dart';
 
 void main() {
