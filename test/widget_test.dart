@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:daylist/home_page.dart';
@@ -33,7 +34,16 @@ void main() {
   ) async {
     await tester.pumpWidget(const MaterialApp(home: SettingsPage()));
 
-    expect(find.byType(Divider), findsNWidgets(2));
+    final accountPanel = find.byType(LiquidGlassLens);
+    expect(accountPanel, findsOneWidget);
+    expect(
+      find.descendant(of: accountPanel, matching: find.text('Account')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: accountPanel, matching: find.text('Account details')),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Account details'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
