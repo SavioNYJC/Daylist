@@ -119,19 +119,27 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(height: 40),
                 TextField(
                   controller: _username,
-                  decoration: const InputDecoration(labelText: 'Username'),
+                  decoration: const InputDecoration(hintText: 'Enter username'),
                 ),
                 SizedBox(height: 20),
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(hintText: 'Enter email'),
                 ),
                 SizedBox(height: 20),
                 TextField(
                   controller: _password,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: const InputDecoration(hintText: 'Enter password'),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _password,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    hintText: 'Re-enter password',
+                  ),
                 ),
                 const SizedBox(height: 24),
                 LiquidGlassButton(

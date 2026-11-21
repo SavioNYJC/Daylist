@@ -28,6 +28,10 @@ class MyApp extends StatelessWidget {
         fontFamily: "DM Sans",
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: Colors.grey.shade100),
+          ),
         ),
       ),
     );
@@ -105,31 +109,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-// void main() {
-//   runApp(
-//     MaterialApp(
-//       home: RootPage(),
-//       theme: ThemeData(brightness: Brightness.dark),
-//     ),
-//   );
-// }
-
-// class RootPage extends StatefulWidget {
-//   const new({super.key});
-
-//   @override
-//   State<RootPage> createState() => _RootPageState();
-// }
-
-// class _RootPageState extends State<RootPage> {
-//   bool _isLoggedIn = false;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (_isLoggedIn) {
-//       return HomePage();
-//     } else {
-//       return WelcomePage();
-//     }
-//   }
-// }
