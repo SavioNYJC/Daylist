@@ -1,13 +1,9 @@
-import 'package:daylist/home_page.dart';
-import 'package:daylist/welcome_page.dart';
-import 'package:flutter/services.dart';
-import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:daylist/screens/welcome_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens/login_page.dart';
 import 'screens/profile_page.dart';
-import 'screens/sign_up_page.dart';
 import 'utils/user_facing_error.dart';
 
 Future<void> main() async {
@@ -24,7 +20,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Daylist', home: AuthGate());
+    return MaterialApp(
+      title: 'Daylist',
+      home: AuthGate(),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        fontFamily: "DM Sans",
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+      ),
+    );
   }
 }
 
@@ -74,7 +80,7 @@ class AuthGate extends StatelessWidget {
           return const HomePage();
         }
 
-        return const SignUpPage();
+        return WelcomePage();
       },
     );
   }

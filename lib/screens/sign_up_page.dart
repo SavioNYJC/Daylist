@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,7 +7,9 @@ import 'login_page.dart';
 import '../utils/user_facing_error.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+  final String suppliedEmail;
+
+  SignUpPage({super.key, this.suppliedEmail = ""});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -33,7 +37,8 @@ class _SignUpPageState extends State<SignUpPage> {
       if (!mounted) return;
       if (isUsernameAvailable != true) {
         setState(
-          () => _message = 'That username is already taken. Please choose another.',
+          () => _message =
+              'That username is already taken. Please choose another.',
         );
         return;
       }
@@ -72,40 +77,84 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sign up')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          TextField(
-            controller: _username,
-            decoration: const InputDecoration(labelText: 'Username'),
-          ),
-          TextField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          TextField(
-            controller: _password,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _signUp,
-            child: const Text('Create account'),
-          ),
-          TextButton(
+    if (widget.suppliedEmail != "") {
+      _email.text = widget.suppliedEmail!;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF0E162F), Color(0xFF404B6C), Color(0xFFD1DBFA)],
+          stops: [0.3, 0.6, 1.0],
+        ),
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const LoginPage()),
-              );
+              var navigator = Navigator.of(context);
+              navigator.pop();
             },
-            child: const Text('Already have an account? Log in'),
+            icon: Icon(Icons.chevron_left, size: 30),
           ),
-          if (_message != null) Text(_message!),
-        ],
+        ),
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: [
+                SizedBox(height: 20),
+                Text(
+                  "Sign Up",
+                  style: TextStyle(
+                    fontSize: 40,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 40),
+                TextField(
+                  controller: _username,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _password,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Password'),
+                ),
+                const SizedBox(height: 24),
+                LiquidGlassButton(
+                  onPressed: _signUp,
+                  child: const Text('Create account'),
+                ),
+                SizedBox(height: 32),
+                Text("Already have an account?"),
+                SizedBox(height: 20),
+                LiquidGlassButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
+                  child: const Text('Log in'),
+                ),
+
+                if (_message != null) Text(_message!),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
