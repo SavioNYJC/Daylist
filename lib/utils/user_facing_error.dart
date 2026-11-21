@@ -51,6 +51,11 @@ String userFacingError(Object? error) {
         '${error.message} ${error.details ?? ''} ${error.hint ?? ''}'
             .toLowerCase();
 
+    if (error.code == 'PGRST202' ||
+        details.contains('is_username_available')) {
+      return 'The username check is not set up in Supabase yet. Apply the '
+          'username setup SQL, then try signing up again.';
+    }
     if (error.code == '23505' && details.contains('username')) {
       return 'That username is already taken. Please choose another.';
     }

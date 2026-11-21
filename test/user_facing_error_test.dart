@@ -17,6 +17,19 @@ void main() {
     );
   });
 
+  test('explains when the username availability function is missing', () {
+    const error = PostgrestException(
+      message: 'Could not find the function public.is_username_available',
+      code: 'PGRST202',
+    );
+
+    expect(
+      userFacingError(error),
+      'The username check is not set up in Supabase yet. Apply the username '
+          'setup SQL, then try signing up again.',
+    );
+  });
+
   test('does not show raw authentication errors', () {
     const error = AuthException('Invalid login credentials');
 
