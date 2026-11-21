@@ -1,3 +1,4 @@
+import 'package:daylist/home_page.dart';
 import 'package:daylist/screens/welcome_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,6 +32,32 @@ class MyApp extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide(color: Colors.grey.shade100),
+          ),
+        ),
+        textTheme: TextTheme(
+          headlineLarge: TextStyle(
+            fontSize: 40,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -1,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 32,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 28,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
+          bodyMedium: TextStyle(fontSize: 18),
+          labelMedium: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.25,
           ),
         ),
       ),
@@ -86,26 +113,6 @@ class AuthGate extends StatelessWidget {
 
         return WelcomePage();
       },
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const ProfilePage()),
-            );
-          },
-          child: const Text('Account information'),
-        ),
-      ),
     );
   }
 }

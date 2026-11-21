@@ -106,15 +106,17 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Padding(
             padding: EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20),
                 Text(
-                  "Sign Up",
+                  "Sign up",
                   style: TextStyle(
                     fontSize: 40,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.left,
                 ),
                 SizedBox(height: 40),
                 TextField(
@@ -144,10 +146,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 24),
                 LiquidGlassButton(
                   onPressed: _signUp,
-                  child: const Text('Create account'),
+                  label: "Create account",
+                  child: Text(
+                    'Create account',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ),
                 SizedBox(height: 32),
-                Text("Already have an account?"),
+                Center(child: Text("Already have an account?")),
                 SizedBox(height: 20),
                 LiquidGlassButton(
                   onPressed: () {
@@ -155,7 +161,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       CupertinoPageRoute(builder: (_) => const LoginPage()),
                     );
                   },
-                  child: const Text('Log in'),
+                  child: Text(
+                    'Log in',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ),
 
                 if (_message != null) Text(_message!),

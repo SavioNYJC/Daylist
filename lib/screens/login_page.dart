@@ -1,3 +1,6 @@
+import 'package:daylist/home_page.dart';
+import 'package:daylist/main.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -66,15 +69,17 @@ class _LoginPageState extends State<LoginPage> {
           child: Padding(
             padding: EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 20),
                 Text(
-                  "Log In",
+                  "Log in",
                   style: TextStyle(
                     fontSize: 40,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.left,
                 ),
                 SizedBox(height: 40),
                 TextField(
@@ -93,10 +98,31 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _login,
                   child: const Text('Log in'),
                 ),
-                if (_message != null) SizedBox(height: 10),
-                if (_message != null) Text(_message!),
+                if (_message != null) SizedBox(height: 20),
+                if (_message != null)
+                  Text(
+                    _message!,
+                    style: Theme.of(context).textTheme.bodyMedium!
+                        .apply(color: Colors.redAccent),
+                  ),
                 SizedBox(height: 20),
-                TextButton(onPressed: () {}, child: Text("Forgot password?")),
+                TextButton(
+                  onPressed: () {
+                    var navigator = Navigator.of(context);
+                    navigator.pushReplacement(
+                      CupertinoPageRoute(
+                        builder: (context) {
+                          return HomePage();
+                        },
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Forgot password?",
+                    style: Theme.of(context).textTheme.bodyMedium!
+                        .apply(decoration: TextDecoration.underline),
+                  ),
+                ),
               ],
             ),
           ),
