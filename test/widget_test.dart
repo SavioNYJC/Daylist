@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:daylist/home_page.dart';
 import 'package:daylist/main.dart';
+import 'package:daylist/screens/profile_page.dart';
+import 'package:daylist/screens/settings_page.dart';
 
 void main() {
   testWidgets('shows the frontend home sections', (WidgetTester tester) async {
@@ -24,5 +26,18 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Log in'), findsOneWidget);
+  });
+
+  testWidgets('settings account button opens the profile page', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: SettingsPage()));
+
+    expect(find.byType(Divider), findsNWidgets(2));
+    await tester.tap(find.text('Account details'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.byType(ProfilePage), findsOneWidget);
   });
 }
