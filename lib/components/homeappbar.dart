@@ -1,11 +1,11 @@
 import 'package:daylist/screens/profile_page.dart';
 import 'package:daylist/utils/themes.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  HomeAppBar({super.key, required this.title, required this.titleSize});
+  const HomeAppBar({super.key, required this.title, required this.titleSize});
 
   final String title;
   final String titleSize;

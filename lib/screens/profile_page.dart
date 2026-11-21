@@ -79,6 +79,11 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Text('User ID: ${profile.userId}'),
                 Text('Username: ${profile.username ?? 'Not set'}'),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _signOut,
+                  child: const Text('Sign out'),
+                ),
               ],
             ),
           );

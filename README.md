@@ -21,6 +21,8 @@ flutter run -d chrome --web-port 7357
 
 Add `http://localhost:7357` to the Supabase project's allowed redirect URLs so email confirmation can return to the running app.
 
+On Android, add `daylist://login-callback` to the Supabase project's allowed redirect URLs. The confirmation link opens Daylist and displays a confirmation message; the user logs in manually. Supabase URI session detection is disabled so the confirmation code is not exchanged for a signed-in session.
+
 The database contains:
 
 - `profiles`: app profile for each user, including an optional username

@@ -7,7 +7,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/user_facing_error.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.notice});
+
+  final String? notice;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -17,6 +19,12 @@ class _LoginPageState extends State<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    _message = widget.notice;
+  }
 
   Future<void> _login() async {
     try {

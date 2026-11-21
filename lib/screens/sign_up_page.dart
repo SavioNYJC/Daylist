@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,7 +10,7 @@ import '../utils/user_facing_error.dart';
 class SignUpPage extends StatefulWidget {
   final String suppliedEmail;
 
-  SignUpPage({super.key, this.suppliedEmail = ""});
+  const SignUpPage({super.key, this.suppliedEmail = ""});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -18,13 +19,24 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   final _username = TextEditingController();
   String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    _email.text = widget.suppliedEmail;
+  }
 
   Future<void> _signUp() async {
     final username = _username.text.trim();
     if (username.isEmpty) {
       setState(() => _message = 'Please enter a username.');
+      return;
+    }
+    if (_password.text != _confirmPassword.text) {
+      setState(() => _message = 'The passwords do not match.');
       return;
     }
 
@@ -46,16 +58,25 @@ class _SignUpPageState extends State<SignUpPage> {
       final response = await Supabase.instance.client.auth.signUp(
         email: _email.text.trim(),
         password: _password.text,
-        emailRedirectTo: Uri.base.origin,
+        emailRedirectTo: kIsWeb ? Uri.base.origin : 'daylist://login-callback',
         data: {'username': username},
       );
 
       if (!mounted) return;
-      setState(() {
-        _message = response.session == null
-            ? 'Account created. Check your email to confirm it.'
-            : 'Account created and signed in.';
-      });
+      if (response.session == null) {
+        Navigator.of(context).push(
+          CupertinoPageRoute<void>(
+            builder: (_) => LoginPage(
+              notice:
+                  'We sent a confirmation email to ${_email.text.trim()}. '
+                  'Confirm your email, then log in.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      setState(() => _message = 'Account created and signed in.');
     } on AuthException catch (error) {
       debugPrint('Sign up failed: $error');
       if (!mounted) return;
@@ -71,16 +92,13 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
     _username.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.suppliedEmail != "") {
-      _email.text = widget.suppliedEmail!;
-    }
-
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -137,7 +155,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 SizedBox(height: 20),
                 TextField(
-                  controller: _password,
+                  controller: _confirmPassword,
                   obscureText: true,
                   decoration: const InputDecoration(
                     hintText: 'Re-enter password',

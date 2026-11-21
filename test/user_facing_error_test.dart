@@ -26,7 +26,7 @@ void main() {
     expect(
       userFacingError(error),
       'The username check is not set up in Supabase yet. Apply the username '
-          'setup SQL, then try signing up again.',
+      'setup SQL, then try signing up again.',
     );
   });
 
@@ -36,6 +36,18 @@ void main() {
     expect(
       userFacingError(error),
       'The email or password is incorrect. Please try again.',
+    );
+  });
+
+  test('asks unverified users to confirm before logging in', () {
+    const error = AuthException(
+      'Email not confirmed',
+      code: 'email_not_confirmed',
+    );
+
+    expect(
+      userFacingError(error),
+      'Please confirm your email using the link we sent before logging in.',
     );
   });
 

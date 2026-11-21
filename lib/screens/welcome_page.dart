@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 class WelcomePage extends StatefulWidget {
-  WelcomePage({super.key});
+  const WelcomePage({super.key});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();

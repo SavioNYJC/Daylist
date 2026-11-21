@@ -1,10 +1,9 @@
-import 'package:daylist/screens/profile_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
-  CustomAppbar({super.key, required this.title});
+  const CustomAppbar({super.key, required this.title});
 
   final String title;
 
