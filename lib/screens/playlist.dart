@@ -1,5 +1,5 @@
 import 'package:daylist/components/customappbar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class Playlist extends StatefulWidget {
   const new({super.key});
@@ -15,12 +15,14 @@ class _PlaylistState extends State<Playlist> {
       appBar: CustomAppbar(title: "Today's playlist"),
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Stack(children: [
+        child: Stack(
+          children: [
             Padding(
               padding: EdgeInsets.all(20),
               child: Column(children: []),
             ),
-          ],)
+          ],
+        ),
       ),
     );
   }

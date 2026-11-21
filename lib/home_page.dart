@@ -1,4 +1,8 @@
 import 'package:daylist/components/homeappbar.dart';
+import 'package:daylist/screens/playlist.dart';
+import 'package:daylist/utils/themes.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 
 class HomePage extends StatefulWidget {
@@ -29,6 +33,25 @@ class _HomePageState extends State<HomePage> {
               Divider(),
               SizedBox(height: 10),
               // TODO: List view of playlists
+              LiquidGlassButton(
+                style: glassButtonStyle,
+                child: Text(
+                  "Test playlist page",
+                  style: Theme.of(context).textTheme.bodyMedium!
+                      .apply(color: Colors.black),
+                ),
+                onPressed: () {
+                  var navigator = Navigator.of(context);
+                  navigator.push(
+                    CupertinoPageRoute(
+                      builder: (context) {
+                        return Playlist();
+                      },
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 10),
               SizedBox(height: 10),
               Text(
                 "Blends",

@@ -1,3 +1,4 @@
+import 'package:daylist/components/customappbar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -47,16 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My account'),
-        actions: [
-          IconButton(
-            onPressed: _signOut,
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
+      appBar: CustomAppbar(title: "App settings"),
       body: FutureBuilder<Profile?>(
         future: _profile,
         builder: (context, snapshot) {

@@ -1,4 +1,5 @@
 import 'package:daylist/screens/profile_page.dart';
+import 'package:daylist/utils/themes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
@@ -20,7 +21,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [Color(0xFF38415C), Color(0xFFD1DBFA)],
-          stops: [0, 0.5],
+          stops: [0, 0.4],
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
       ),
@@ -41,7 +42,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   );
                 },
-                icon: const Icon(Icons.settings_outlined),
+                icon: const Icon(Icons.settings_outlined, color: Colors.black),
               ),
             ),
           ),
@@ -63,22 +64,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: MediaQuery.of(context).size.width - 40,
               height: 130,
               child: LiquidGlassLens(
-                style: const LiquidGlassStyle(
-                  shape: LiquidGlassShape.continuousRoundedRectangle(
-                    cornerRadius: 28,
-                  ),
-                  refractionIndex: 2,
-                  refractionWidth: 24,
-                  blur: 3,
-                  shadow: LiquidGlassShadow(
-                    blur: 10,
-                    opacity: 0.25,
-                    inset: -10,
-                    cornerRadius: 20,
-                    offset: Offset(0, 5),
-                  ),
-                  // color: Color(0x22FFFFFF),
-                ),
+                style: glassCardStyle,
                 child: InkWell(
                   onTap: () {},
                   child: Padding(

@@ -1,6 +1,5 @@
 import 'package:daylist/home_page.dart';
-import 'package:daylist/main.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -109,12 +108,13 @@ class _LoginPageState extends State<LoginPage> {
                 TextButton(
                   onPressed: () {
                     var navigator = Navigator.of(context);
-                    navigator.pushReplacement(
+                    navigator.pushAndRemoveUntil(
                       CupertinoPageRoute(
                         builder: (context) {
                           return HomePage();
                         },
                       ),
+                      (Route<dynamic> route) => false,
                     );
                   },
                   child: Text(
