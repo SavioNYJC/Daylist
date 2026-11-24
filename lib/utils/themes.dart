@@ -49,8 +49,8 @@ var appTheme = ThemeData(
 // Liquid glass themes
 var glassCardStyle = LiquidGlassStyle(
   shape: LiquidGlassShape.continuousRoundedRectangle(cornerRadius: 28),
-  refractionIndex: 2,
-  refractionWidth: 24,
+  refractionIndex: 2.5,
+  refractionWidth: 32,
   blur: 3,
   shadow: LiquidGlassShadow(
     blur: 10,

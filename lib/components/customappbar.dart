@@ -1,11 +1,15 @@
-import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppbar({super.key, required this.title});
+  const CustomAppbar({
+    super.key,
+    required this.title,
+    this.useLiquidGlassBackButton = true,
+  });
 
   final String title;
+  final bool useLiquidGlassBackButton;
 
   @override
   Size get preferredSize => const Size.fromHeight(180);
@@ -27,41 +31,10 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
           Positioned(
             left: 24,
             top: 70,
-            child: LiquidGlassLens(
-              child: IconButton(
-                onPressed: () {
-                  var navigator = Navigator.of(context);
-                  navigator.pop();
-                },
-                icon: const Icon(
-                  Icons.chevron_left,
-                  color: Colors.black,
-                  size: 30,
-                ),
-              ),
-            ),
+            child: useLiquidGlassBackButton
+                ? LiquidGlassLens(child: _buildBackButton(context))
+                : _buildBackButton(context),
           ),
-
-          Positioned(
-            right: 24,
-            top: 70,
-            child: LiquidGlassLens(
-              child: IconButton(
-                onPressed: () {
-                  var navigator = Navigator.of(context);
-                  navigator.push(
-                    CupertinoPageRoute(
-                      builder: (context) {
-                        return Placeholder();
-                      },
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.edit, color: Colors.black, size: 24),
-              ),
-            ),
-          ),
-
           Positioned(
             left: 32,
             bottom: 22,
@@ -73,6 +46,13 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBackButton(BuildContext context) {
+    return IconButton(
+      onPressed: () => Navigator.of(context).pop(),
+      icon: const Icon(Icons.chevron_left, color: Colors.black, size: 30),
     );
   }
 }

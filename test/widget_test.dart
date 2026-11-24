@@ -1,8 +1,11 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:daylist/screens/home_page.dart';
 import 'package:daylist/main.dart';
+import 'package:daylist/screens/profile_page.dart';
+import 'package:daylist/screens/settings_page.dart';
 
 void main() {
   testWidgets('shows the frontend home sections', (WidgetTester tester) async {
@@ -24,5 +27,27 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Log in'), findsOneWidget);
+  });
+
+  testWidgets('settings account button opens the profile page', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: SettingsPage()));
+
+    final accountPanel = find.byType(LiquidGlassLens);
+    expect(accountPanel, findsOneWidget);
+    expect(
+      find.descendant(of: accountPanel, matching: find.text('Account')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: accountPanel, matching: find.text('Account details')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Account details'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.byType(ProfilePage), findsOneWidget);
   });
 }
