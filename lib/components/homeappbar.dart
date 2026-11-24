@@ -1,4 +1,4 @@
-import 'package:daylist/screens/profile_page.dart';
+import 'package:daylist/screens/settings_page.dart';
 import 'package:daylist/utils/themes.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
@@ -30,20 +30,15 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           Positioned(
             right: 24,
             top: 70,
-            child: LiquidGlassLens(
-              child: IconButton(
-                onPressed: () {
-                  var navigator = Navigator.of(context);
-                  navigator.push(
-                    CupertinoPageRoute(
-                      builder: (context) {
-                        return ProfilePage();
-                      },
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.settings_outlined, color: Colors.black),
-              ),
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => const SettingsPage(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.settings_outlined, color: Colors.black),
             ),
           ),
 
