@@ -1,4 +1,4 @@
-import 'package:daylist/home_page.dart';
+import 'package:daylist/screens/home_page.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';

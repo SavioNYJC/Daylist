@@ -11,7 +11,7 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'utils/user_facing_error.dart';
+import 'package:daylist/utils/user_facing_error.dart';
 
 typedef BlendHomeLoader = Future<BlendHomeData> Function();
 typedef BlendInvitationCreator = Future<void> Function(
