@@ -26,17 +26,23 @@ var appTheme = ThemeData(
       letterSpacing: -0.5,
     ),
     headlineSmall: TextStyle(
-      fontSize: 28,
+      fontSize: 24,
       color: Colors.black,
       fontWeight: FontWeight.bold,
       letterSpacing: -0.5,
     ),
     bodyMedium: TextStyle(fontSize: 18),
+    bodySmall: TextStyle(
+      fontSize: 18,
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+    ),
     labelMedium: TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w700,
       letterSpacing: -0.25,
     ),
+    displayMedium: TextStyle(fontSize: 24),
   ),
 );
 
@@ -58,7 +64,7 @@ var glassCardStyle = LiquidGlassStyle(
 
 var glassButtonStyle = LiquidGlassStyle(
   shape: LiquidGlassShape.continuousRoundedRectangle(cornerRadius: 28),
-  refractionIndex: 2,
+  refractionIndex: 4,
   refractionWidth: 24,
   blur: 3,
   shadow: LiquidGlassShadow(
@@ -67,6 +73,19 @@ var glassButtonStyle = LiquidGlassStyle(
     inset: -15,
     cornerRadius: 20,
     offset: Offset(0, 5),
+  ),
+  specular: LiquidGlassLight.specular(
+    thickness: 4,
+    sharpness: 0.8,
+    intensity: 1,
+    spread: 1.0,
+    angle: 39,
+  ),
+  glow: const LiquidGlassLight.glow(
+    thickness: 4,
+    intensity: 0.5,
+    spread: 0.4,
+    angle: 129,
   ),
   // color: Color(0x22FFFFFF),
 );
