@@ -7,7 +7,7 @@ class Event {
   final DateTime startTime;
   final DateTime endTime;
   final DateTime createdAt;
-  final Icon? iconName;
+  final IconData? iconID;
   bool isCompleted;
 
   Event({
@@ -17,7 +17,7 @@ class Event {
     required this.startTime,
     required this.endTime,
     required this.createdAt,
-    this.iconName,
+    this.iconID,
     this.isCompleted = false,
   });
 }

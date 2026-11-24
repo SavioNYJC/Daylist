@@ -45,7 +45,6 @@ var appTheme = ThemeData(
     displayMedium: TextStyle(fontSize: 24),
   ),
 );
-
 // Liquid glass themes
 var glassCardStyle = LiquidGlassStyle(
   shape: LiquidGlassShape.continuousRoundedRectangle(cornerRadius: 28),
