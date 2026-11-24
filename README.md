@@ -1,6 +1,6 @@
 # Daylist
 
-Daylist is a Flutter app backed by Supabase. It currently supports email-and-password signup and login, and lets a signed-in user view their account information and sign out. Event and playlist screens are not built yet.
+Daylist is a Flutter app backed by Supabase. It currently supports email-and-password signup and login, and lets a signed-in user view their account information, sign out, or request account deletion. Event and playlist screens are not built yet.
 
 ## Run the app
 
@@ -36,3 +36,18 @@ Row Level Security (RLS) is enabled on these tables. Their policies are intended
 On signup, Supabase creates the auth user and the `on_auth_user_created` trigger inserts a matching `profiles` row. Apply `supabase/migrations/20261120234000_username_uniqueness.sql` in the Supabase SQL Editor to save the submitted username, enforce case-insensitive uniqueness, and enable the signup page's username-availability check.
 
 The original schema and RLS policies were configured in the Supabase project. Dashboard changes are not automatically saved to GitHub, so keep applying and saving future database changes as migrations in this repository.
+
+### Account deletion
+
+The Account Details screen calls the `delete-account` Edge Function after the user confirms deletion. The function verifies the signed-in user and deletes only that user's Supabase Auth account; the service-role key stays on Supabase and must never be added to Flutter.
+
+Deploy it to the linked Supabase project with the Supabase CLI:
+
+```powershell
+supabase init
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase functions deploy delete-account
+```
+
+Run `supabase init` only if this repository has not already been initialized with the Supabase CLI. The function deletes the Auth user, so configure foreign keys in the ownership chain (for example, user-owned tables to `auth.users(id)`) with `ON DELETE CASCADE` if those rows should be removed too. The Edge Function logs an error and does not report success if Supabase refuses the deletion.

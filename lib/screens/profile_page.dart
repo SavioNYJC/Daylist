@@ -27,6 +27,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late final Future<Profile?> _profile = _loadProfile();
+  bool _isDeletingAccount = false;
 
   Future<Profile?> _loadProfile() async {
     final client = Supabase.instance.client;
@@ -103,6 +104,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 onTap: _signOut,
               ),
               const Divider(height: 1, color: Color(0xFFDDDDDD)),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.delete_forever_outlined,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  'Delete account',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                trailing: _isDeletingAccount
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+                onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
+              ),
+              const Divider(height: 1, color: Color(0xFFDDDDDD)),
             ],
           );
         },
@@ -121,6 +142,126 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(userFacingError(error))));
     }
+  }
+
+  String _deleteAccountFailureMessage(FunctionException error) {
+    final details = error.details;
+    final code = details is Map ? details['code'] : null;
+
+    if (error.status == 0) {
+      return 'Could not reach the account deletion service. Check your '
+          'connection and try again.';
+    }
+    if (error.status == 404) {
+      return 'The account deletion service is not deployed. Deploy the '
+          'delete-account Edge Function and try again.';
+    }
+    if (error.status == 401) {
+      return 'Your session expired. Sign in again and retry.';
+    }
+    if (code == 'function_not_configured') {
+      return 'The account deletion service is missing its Supabase keys. '
+          'Check the Edge Function configuration.';
+    }
+    if (code == 'delete_rejected' || error.status >= 500) {
+      return 'Supabase could not delete the account. A related table may be '
+          'blocking deletion; check the Edge Function logs and delete rules.';
+    }
+
+    return 'Could not delete the account (HTTP ${error.status}). Check the '
+        'Supabase Edge Function logs.';
+  }
+
+  void _showAccountMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+          elevation: 8,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFFDDDDDD)),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.redAccent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: const BorderSide(color: Color(0xFFDDDDDD)),
+        ),
+        title: const Text(
+          'Delete account?',
+          style: TextStyle(color: Colors.black),
+        ),
+        content: const Text(
+          'This permanently deletes your account and its associated data. '
+          'This action cannot be undone.',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete account'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeletingAccount = true);
+    try {
+      await Supabase.instance.client.functions.invoke('delete-account');
+    } on FunctionException catch (error) {
+      debugPrint('Account deletion failed: $error');
+      if (!mounted) return;
+      _showAccountMessage(_deleteAccountFailureMessage(error));
+      return;
+    } finally {
+      if (mounted) setState(() => _isDeletingAccount = false);
+    }
+
+    try {
+      await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+    } on AuthException catch (error) {
+      debugPrint('Could not clear the deleted account session: $error');
+      if (!mounted) return;
+      _showAccountMessage(
+        'Account deleted. Restart the app to finish signing out.',
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }
 
