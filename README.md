@@ -37,6 +37,14 @@ On signup, Supabase creates the auth user and the `on_auth_user_created` trigger
 
 The original schema and RLS policies were configured in the Supabase project. Dashboard changes are not automatically saved to GitHub, so keep applying and saving future database changes as migrations in this repository.
 
+### Blends
+
+The Home screen loads accepted blends and pending invitations from `public.blends`. Users can create a blend invitation with another account's username, select dates, and add an optional description. The recipient can accept or decline. Accepted blends open a side-by-side comparison of both users' events on the selected dates, using the device's local time.
+
+The bottom-right plus button expands to quick actions for new playlists, pending blends, and new blends. Pending blends opens a dedicated page where incoming invitations can be accepted or declined and sent invitations can be reviewed.
+
+Apply `supabase/migrations/20261124144000_blend_invitation_details.sql` in the Supabase SQL Editor to add the selected dates and description columns before using the updated invitation form. In debug builds, **Preview sample blend** opens a sample schedule without writing to Supabase or requiring a second account.
+
 ### Account deletion
 
 The Account Details screen calls the `delete-account` Edge Function after the user confirms deletion. The function verifies the signed-in user and deletes only that user's Supabase Auth account; the service-role key stays on Supabase and must never be added to Flutter.
