@@ -30,6 +30,19 @@ void main() {
     );
   });
 
+  test('explains when the Blend invitation database update is missing', () {
+    const error = PostgrestException(
+      message: "Could not find the 'selected_dates' column of 'blends'",
+      code: 'PGRST204',
+    );
+
+    expect(
+      userFacingError(error),
+      'The Blend database update is missing. Run the blend invitation SQL '
+      'migration in Supabase, then try again.',
+    );
+  });
+
   test('does not show raw authentication errors', () {
     const error = AuthException('Invalid login credentials');
 
