@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 // add event to user playlist
 class EventData {
   final String id;
@@ -60,7 +61,7 @@ Future<EventData> addEventData({
     'event_name': eventName,
     'description': description,
     'location': location,
-    'icon_codepoint': iconCodepoint,
+    'icon_codePoint': iconCodepoint,
     'start_time': startTime.toIso8601String(),
     'end_time': endTime.toIso8601String(),
   };
@@ -74,18 +75,13 @@ Future<EventData> addEventData({
   final event = EventData.fromMap(row);
 
   await Supabase.instance.client.from('playlist_items').insert({
-      'playlist_id': playlistId,
-      'event_id': event.id,
-      'position': position,
+    'playlist_id': playlistId,
+    'event_id': event.id,
+    'position': position,
   });
-// returns an EventData object to use for updating the UI to reflect changes
+  // returns an EventData object to use for updating the UI to reflect changes
   return event;
 }
-
-
-
-
-
 
 // adds a new playlist to user's playlists
 class PlaylistData {
@@ -113,6 +109,7 @@ class PlaylistData {
 
 Future<PlaylistData> addPlaylistData({
   required String playlistName,
+  required DateTime date,
 }) async {
   final user = Supabase.instance.client.auth.currentUser;
 
@@ -123,6 +120,7 @@ Future<PlaylistData> addPlaylistData({
   final data = <String, dynamic>{
     'user_id': user.id,
     'playlist_name': playlistName,
+    "date": date.toIso8601String(),
   };
 
   final row = await Supabase.instance.client

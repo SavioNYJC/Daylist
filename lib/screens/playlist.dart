@@ -8,7 +8,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Playlist extends StatefulWidget {
-  const new({super.key});
+  Playlist({super.key, required this.playlist_id});
+
+  String playlist_id;
 
   @override
   State<Playlist> createState() => _PlaylistState();
@@ -33,7 +35,21 @@ class _PlaylistState extends State<Playlist> {
   TimeOfDay? _selectedEndTime;
 
   final supabase = Supabase.instance.client;
-  late final Future _eventsFuture;
+  late Future _eventsFuture;
+
+  Future _loadEvents() => supabase
+      .from("events")
+      .select(
+        "id, user_id, event_name, description, location, start_time, end_time, created_at, icon_codePoint, playlist_items!inner(playlist_id, position, created_at)",
+      )
+      .eq("playlist_items.playlist_id", widget.playlist_id)
+      .order("start_time", ascending: true);
+
+  void _refreshEvents() {
+    setState(() {
+      _eventsFuture = _loadEvents();
+    });
+  }
 
   DateTime _dateTimeFor(DateTime date, TimeOfDay time) {
     return DateTime(
@@ -47,10 +63,8 @@ class _PlaylistState extends State<Playlist> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    final user = supabase.auth.currentUser;
-    _eventsFuture = supabase.from("events").select().eq("user_id", user!.id);
+    _eventsFuture = _loadEvents();
   }
 
   @override
@@ -84,7 +98,7 @@ class _PlaylistState extends State<Playlist> {
                             padding: const EdgeInsets.all(10),
                             child: ListTile(
                               title: Text(
-                                testingEventsList[index],
+                                events[index]["event_name"],
                                 style: Theme.of(context)
                                     .textTheme
                                     .displayMedium!
@@ -129,7 +143,7 @@ class _PlaylistState extends State<Playlist> {
                             ),
                           );
                         },
-                        itemCount: testingEventsList.length,
+                        itemCount: events.length,
                         separatorBuilder: (context, index) {
                           return Divider(
                             thickness: 1,
@@ -180,7 +194,7 @@ class _PlaylistState extends State<Playlist> {
                             context: context,
                             isScrollControlled: true,
                             builder: (context) {
-                              var selectedEventIcon = Icons.event;
+                              var selectedEventIcon = Icons.build;
 
                               return AnimatedPadding(
                                 duration: const Duration(milliseconds: 200),
@@ -571,7 +585,7 @@ class _PlaylistState extends State<Playlist> {
                                             40,
                                         style: glassButtonStyle,
                                         child: Text(
-                                          "Register",
+                                          "Create",
                                           style: Theme.of(context)
                                               .textTheme
                                               .labelMedium!
@@ -584,48 +598,83 @@ class _PlaylistState extends State<Playlist> {
                                           final eventDate = _selectedEventDate;
                                           final startTime = _selectedStartTime;
                                           final endTime = _selectedEndTime;
+                                          final missingFields = <String>[
+                                            if (nameFieldController.text
+                                                .trim()
+                                                .isEmpty)
+                                              'Name',
+                                            if (eventDate == null ||
+                                                dateFieldController.text
+                                                    .trim()
+                                                    .isEmpty)
+                                              'Date',
+                                            if (startTime == null ||
+                                                startTimeController.text
+                                                    .trim()
+                                                    .isEmpty)
+                                              'Start Time',
+                                            if (endTime == null ||
+                                                endTimeController.text
+                                                    .trim()
+                                                    .isEmpty)
+                                              'End Time',
+                                            if (notesTextController.text
+                                                .trim()
+                                                .isEmpty)
+                                              'Notes',
+                                          ];
 
                                           // Create event and store in database
+                                          if (missingFields.isNotEmpty) {
+                                            await showDialog<void>(
+                                              context: context,
+                                              builder: (dialogContext) =>
+                                                  AlertDialog(
+                                                    title: const Text(
+                                                      'Missing required fields',
+                                                    ),
+                                                    content: Text(
+                                                      'Please complete: ${missingFields.join(', ')}.',
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                              dialogContext,
+                                                            ).pop(),
+                                                        child: const Text('OK'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                            );
+                                            return;
+                                          }
+
                                           if (user == null) {
                                             throw StateError(
                                               'You must be signed in to create an event',
                                             );
                                           }
 
-                                          if (eventDate == null ||
-                                              startTime == null ||
-                                              endTime == null) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Select a date, start time, and end time.',
-                                                    ),
-                                                  ),
-                                                );
-                                            return;
-                                          }
-
                                           await addEventData(
-                                            eventName:
-                                                nameFieldController.text,
+                                            eventName: nameFieldController.text,
                                             description:
                                                 notesTextController.text,
                                             startTime: _dateTimeFor(
-                                              eventDate,
-                                              startTime,
+                                              eventDate!,
+                                              startTime!,
                                             ),
                                             endTime: _dateTimeFor(
                                               eventDate,
-                                              endTime,
+                                              endTime!,
                                             ),
                                             iconCodepoint:
                                                 selectedEventIcon.codePoint,
-                                            // Replace with the selected playlist ID when available.
-                                            playlistId:
-                                                '00000000-0000-0000-0000-000000000000',
+                                            playlistId: widget.playlist_id,
                                           );
 
+                                          if (!mounted) return;
+                                          _refreshEvents();
                                           navigator.pop();
                                         },
                                       ),
