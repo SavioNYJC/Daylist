@@ -1,5 +1,6 @@
 import 'package:daylist/components/customappbar.dart';
 import 'package:daylist/components/now_playing_card.dart';
+import 'package:daylist/utils/add_content.dart';
 import 'package:daylist/utils/icons_list.dart';
 import 'package:daylist/utils/themes.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
@@ -34,14 +35,14 @@ class _PlaylistState extends State<Playlist> {
   final supabase = Supabase.instance.client;
   late final Future _eventsFuture;
 
-  String _timestampFor(DateTime date, TimeOfDay time) {
+  DateTime _dateTimeFor(DateTime date, TimeOfDay time) {
     return DateTime(
       date.year,
       date.month,
       date.day,
       time.hour,
       time.minute,
-    ).toUtc().toIso8601String();
+    ).toUtc();
   }
 
   @override
@@ -605,23 +606,25 @@ class _PlaylistState extends State<Playlist> {
                                             return;
                                           }
 
-                                          await supabase.from("events").insert({
-                                            "user_id": user.id,
-                                            "event_name":
+                                          await addEventData(
+                                            eventName:
                                                 nameFieldController.text,
-                                            "description":
+                                            description:
                                                 notesTextController.text,
-                                            "start_time": _timestampFor(
+                                            startTime: _dateTimeFor(
                                               eventDate,
                                               startTime,
                                             ),
-                                            "end_time": _timestampFor(
+                                            endTime: _dateTimeFor(
                                               eventDate,
                                               endTime,
                                             ),
-                                            "icon_codePoint":
+                                            iconCodepoint:
                                                 selectedEventIcon.codePoint,
-                                          });
+                                            // Replace with the selected playlist ID when available.
+                                            playlistId:
+                                                '00000000-0000-0000-0000-000000000000',
+                                          );
 
                                           navigator.pop();
                                         },
