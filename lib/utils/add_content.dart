@@ -6,6 +6,7 @@ class EventData {
   final String eventName;
   final String? description;
   final String? location;
+  final int? iconCodepoint;
   final DateTime startTime;
   final DateTime endTime;
   final DateTime created_at;
@@ -16,6 +17,7 @@ class EventData {
     required this.eventName,
     this.description,
     this.location,
+    this.iconCodepoint,
     required this.startTime,
     required this.endTime,
     required this.created_at,
@@ -28,6 +30,7 @@ class EventData {
       eventName: map['event_name'] as String,
       description: map['description'] as String?,
       location: map['location'] as String?,
+      iconCodepoint: map['icon_codepoint'] as int?,
       startTime: DateTime.parse(map['start_time'] as String),
       endTime: DateTime.parse(map['end_time'] as String),
       created_at: DateTime.parse(map['created_at'] as String),
@@ -40,6 +43,7 @@ Future<EventData> addEventData({
   required String eventName,
   String? description,
   String? location,
+  int? iconCodepoint,
   required DateTime startTime,
   required DateTime endTime,
   required String playlistId,
@@ -56,6 +60,7 @@ Future<EventData> addEventData({
     'event_name': eventName,
     'description': description,
     'location': location,
+    'icon_codepoint': iconCodepoint,
     'start_time': startTime.toIso8601String(),
     'end_time': endTime.toIso8601String(),
   };
