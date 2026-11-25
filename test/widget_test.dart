@@ -8,8 +8,23 @@ import 'package:daylist/screens/pending_blends_page.dart';
 import 'package:daylist/screens/profile_page.dart';
 import 'package:daylist/screens/settings_page.dart';
 import 'package:daylist/services/blend_service.dart';
+import 'package:daylist/utils/add_content.dart';
 
 void main() {
+  test('event data captures the icon codepoint', () {
+    final event = EventData.fromMap({
+      'id': 'event-id',
+      'user_id': 'user-id',
+      'event_name': 'Study',
+      'icon_codepoint': 0xe8b6,
+      'start_time': '2026-11-25T09:00:00.000',
+      'end_time': '2026-11-25T10:00:00.000',
+      'created_at': '2026-11-24T12:00:00.000',
+    });
+
+    expect(event.iconCodepoint, 0xe8b6);
+  });
+
   testWidgets('shows the frontend home sections', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(

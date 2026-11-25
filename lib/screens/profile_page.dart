@@ -26,7 +26,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final Future<Profile?> _profile = _loadProfile();
+  late Future<Profile?> _profile = _loadProfile();
   bool _isDeletingAccount = false;
 
   Future<Profile?> _loadProfile() async {
@@ -93,6 +93,21 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const Divider(height: 1, color: Color(0xFFDDDDDD)),
               _ProfileDetailRow(label: 'User ID', value: profile.userId),
+
+              // edit profile details
+              const Divider(height: 1, color: Color(0xFFDDDDDD)),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.edit_outlined, color: Colors.black),
+                title: const Text(
+                  'Update account details',
+                  style: TextStyle(color: Colors.black),
+                ),
+                onTap: () => _editAccountDetails(profile),
+              ), 
+
+
+              // sign out and delete account
               const Divider(height: 1, color: Color(0xFFDDDDDD)),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -143,7 +158,143 @@ class _ProfilePageState extends State<ProfilePage> {
           .showSnackBar(SnackBar(content: Text(userFacingError(error))));
     }
   }
+// editing account details
+  Future<void> _editAccountDetails(Profile profile) async {
+    final usernameController = TextEditingController(
+      text: profile.username ?? '',
+    );
+    String? errorMessage;
+    var isSaving = false;
 
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          Future<void> saveUsername() async {
+            if (isSaving) return;
+            final username = usernameController.text.trim();
+            if (username.isEmpty) {
+              setDialogState(() => errorMessage = 'Please enter a username.');
+              return;
+            }
+
+            setDialogState(() {
+              isSaving = true;
+              errorMessage = null;
+            });
+            try {
+              final client = Supabase.instance.client;
+              final usernameChanged =
+                  username.toLowerCase() !=
+                  (profile.username ?? '').trim().toLowerCase();
+              if (usernameChanged) {
+                final isAvailable = await client.rpc(
+                  'is_username_available',
+                  params: {'candidate_username': username},
+                );
+                if (isAvailable != true) {
+                  setDialogState(() {
+                    isSaving = false;
+                    errorMessage = 'That username is already taken. Please choose another.';
+                  });
+                  return;
+                }
+
+                final updatedProfile = await client
+                    .from('profiles')
+                    .update({'username': username})
+                    .eq('user_id', profile.userId)
+                    .select('user_id')
+                    .maybeSingle();
+                if (updatedProfile == null) {
+                  setDialogState(() {
+                    isSaving = false;
+                    errorMessage =
+                        'Could not save your username. Please try again or '
+                        'contact support.';
+                  });
+                  return;
+                }
+              }
+
+              if (!mounted || !dialogContext.mounted) return;
+              setState(() {
+                _profile = _loadProfile();
+              });
+              Navigator.of(dialogContext).pop();
+            } on PostgrestException catch (error) {
+              debugPrint('Account details update failed: $error');
+              if (!dialogContext.mounted) return;
+              setDialogState(() {
+                isSaving = false;
+                errorMessage = userFacingError(error);
+              });
+            }
+          }
+
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.white,
+            title: const Text(
+              'Update account details',
+              style: TextStyle(color: Colors.black),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: usernameController,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.black),
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => saveUsername(),
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    labelStyle: TextStyle(color: Colors.black),
+                    floatingLabelStyle: TextStyle(color: Colors.black),
+                  ),
+                ),
+                if (errorMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    errorMessage!,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSaving
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              TextButton(
+                onPressed: isSaving ? null : saveUsername,
+                child: isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Save', style: TextStyle(color: Colors.black)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    usernameController.dispose();
+  }
+
+
+// error handling for account deletion
   String _deleteAccountFailureMessage(FunctionException error) {
     final details = error.details;
     final code = details is Map ? details['code'] : null;
