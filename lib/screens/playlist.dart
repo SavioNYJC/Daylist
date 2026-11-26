@@ -3,14 +3,15 @@ import 'package:daylist/components/now_playing_card.dart';
 import 'package:daylist/utils/add_content.dart';
 import 'package:daylist/utils/icons_list.dart';
 import 'package:daylist/utils/themes.dart';
+import 'package:intl/intl.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Playlist extends StatefulWidget {
-  Playlist({super.key, required this.playlist_id});
+  Playlist({super.key, required this.playlistId});
 
-  String playlist_id;
+  String playlistId;
 
   @override
   State<Playlist> createState() => _PlaylistState();
@@ -42,7 +43,7 @@ class _PlaylistState extends State<Playlist> {
       .select(
         "id, user_id, event_name, description, location, start_time, end_time, created_at, icon_codePoint, playlist_items!inner(playlist_id, position, created_at)",
       )
-      .eq("playlist_items.playlist_id", widget.playlist_id)
+      .eq("playlist_items.playlist_id", widget.playlistId)
       .order("start_time", ascending: true);
 
   void _refreshEvents() {
@@ -94,6 +95,18 @@ class _PlaylistState extends State<Playlist> {
                     Expanded(
                       child: ListView.separated(
                         itemBuilder: (context, index) {
+                          var startTime = DateTime.parse(
+                            events[index]["start_time"],
+                          );
+                          var formattedStartTime = DateFormat("HHmm")
+                              .format(startTime);
+
+                          var endTime = DateTime.parse(
+                            events[index]["end_time"],
+                          );
+                          var formattedEndTime = DateFormat("HHmm")
+                              .format(endTime);
+
                           return Padding(
                             padding: const EdgeInsets.all(10),
                             child: ListTile(
@@ -118,7 +131,7 @@ class _PlaylistState extends State<Playlist> {
                               subtitle: Row(
                                 children: [
                                   Text(
-                                    "0730",
+                                    formattedStartTime,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall,
@@ -133,7 +146,7 @@ class _PlaylistState extends State<Playlist> {
                                   ),
                                   SizedBox(width: 6),
                                   Text(
-                                    "0800",
+                                    formattedEndTime,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall,
@@ -670,7 +683,7 @@ class _PlaylistState extends State<Playlist> {
                                             ),
                                             iconCodepoint:
                                                 selectedEventIcon.codePoint,
-                                            playlistId: widget.playlist_id,
+                                            playlistId: widget.playlistId,
                                           );
 
                                           if (!mounted) return;

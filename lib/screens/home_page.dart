@@ -41,6 +41,8 @@ class _HomePageState extends State<HomePage> {
 
   final supabase = Supabase.instance.client;
   late Future _playlistsFuture;
+  final Map<String, Future<Map<String, DateTime?>>> _playlistTimeRangeFutures =
+      {};
 
   Future<BlendHomeData> _loadBlends() =>
       widget.blendLoader?.call() ?? _blendService.loadHomeData();
@@ -58,8 +60,33 @@ class _HomePageState extends State<HomePage> {
         .order("date", ascending: true);
   }
 
+  Future<Map<String, DateTime?>> getPlaylistTimeRange(String playlistId) async {
+    final response = await supabase.rpc(
+      "get_playlist_time_range",
+      params: {"p_playlist_id": playlistId},
+    );
+
+    final result = response[0];
+
+    return {
+      "earliest_start_time": result["earliest_start_time"] != null
+          ? DateTime.parse(result["earliest_start_time"]).toLocal()
+          : null,
+      "latest_end_time": result["latest_end_time"] != null
+          ? DateTime.parse(result["latest_end_time"]).toLocal()
+          : null,
+    };
+  }
+
+  Future<Map<String, DateTime?>> _playlistTimeRangeFuture(String playlistId) =>
+      _playlistTimeRangeFutures.putIfAbsent(
+        playlistId,
+        () => getPlaylistTimeRange(playlistId),
+      );
+
   void _refreshPlaylists() {
     setState(() {
+      _playlistTimeRangeFutures.clear();
       _playlistsFuture = _loadPlaylists();
     });
   }
@@ -385,6 +412,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     itemCount: playlists.length,
                     itemBuilder: (context, index) {
+                      final playlistId = playlists[index]["id"] as String;
                       var playlistDate = DateTime.parse(
                         playlists[index]["date"],
                       );
@@ -392,70 +420,110 @@ class _HomePageState extends State<HomePage> {
                       String formattedDate = DateFormat("d MMMM")
                           .format(playlistDate);
 
-                      return Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: ListTile(
-                          onTap: () {
-                            var navigator = Navigator.of(context);
-                            navigator.push(
-                              CupertinoPageRoute(
-                                builder: (context) => Playlist(
-                                  playlist_id: playlists[index]["id"],
-                                ),
+                      return FutureBuilder<Map<String, DateTime?>>(
+                        future: _playlistTimeRangeFuture(playlistId),
+                        builder: (context, timeRangeSnapshot) {
+                          if (timeRangeSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (timeRangeSnapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Text(
+                                'Error loading playlist time: '
+                                '${timeRangeSnapshot.error}',
                               ),
                             );
-                          },
-                          title: Text(
-                            formattedDate,
-                            style: Theme.of(context).textTheme.displayMedium!
-                                .apply(color: Colors.black, fontWeightDelta: 1),
-                          ),
-                          leading: Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                            child: Icon(
-                              Icons.calendar_month,
-                              color: Colors.black,
-                              size: 30,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 10),
-                              Text(
-                                playlists[index]["playlist_name"],
-                                style: Theme.of(context).textTheme.bodySmall,
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    "0730",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
+                          }
+
+                          final playlistTimeRange = timeRangeSnapshot.data!;
+                          final earliestStart =
+                              playlistTimeRange["earliest_start_time"];
+                          final latestEnd =
+                              playlistTimeRange["latest_end_time"];
+
+                          return Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ListTile(
+                              onTap: () {
+                                var navigator = Navigator.of(context);
+                                navigator.push(
+                                  CupertinoPageRoute(
+                                    builder: (context) =>
+                                        Playlist(playlistId: playlistId),
                                   ),
-                                  SizedBox(width: 6),
-                                  SizedBox(
-                                    width: 10,
-                                    child: Divider(
+                                );
+                              },
+                              title: Text(
+                                formattedDate,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .displayMedium!
+                                    .apply(
                                       color: Colors.black,
-                                      thickness: 1,
+                                      fontWeightDelta: 1,
                                     ),
-                                  ),
-                                  SizedBox(width: 6),
+                              ),
+                              leading: Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                                child: Icon(
+                                  Icons.calendar_month,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 10),
                                   Text(
-                                    "0800",
+                                    playlists[index]["playlist_name"],
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall,
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        earliestStart == null
+                                            ? "--"
+                                            : DateFormat("HHmm")
+                                                  .format(earliestStart),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                      SizedBox(width: 6),
+                                      SizedBox(
+                                        width: 10,
+                                        child: Divider(
+                                          color: Colors.black,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        latestEnd == null
+                                            ? "--"
+                                            : DateFormat("HHmm")
+                                                  .format(latestEnd),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
