@@ -1,3 +1,4 @@
+import 'package:daylist/utils/add_content.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:daylist/components/homeappbar.dart';
@@ -7,6 +8,7 @@ import 'package:daylist/screens/pending_blends_page.dart';
 import 'package:daylist/screens/playlist.dart';
 import 'package:daylist/services/blend_service.dart';
 import 'package:daylist/utils/themes.dart';
+import 'package:intl/intl.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,8 +39,57 @@ class _HomePageState extends State<HomePage> {
 
   BlendService get _blendService => BlendService(Supabase.instance.client);
 
+  final supabase = Supabase.instance.client;
+  late Future _playlistsFuture;
+  final Map<String, Future<Map<String, DateTime?>>> _playlistTimeRangeFutures =
+      {};
+
   Future<BlendHomeData> _loadBlends() =>
       widget.blendLoader?.call() ?? _blendService.loadHomeData();
+
+  Future _loadPlaylists() {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      throw StateError('You must be signed in to load playlists');
+    }
+
+    return supabase
+        .from("playlists")
+        .select()
+        .eq("user_id", user.id)
+        .order("date", ascending: true);
+  }
+
+  Future<Map<String, DateTime?>> getPlaylistTimeRange(String playlistId) async {
+    final response = await supabase.rpc(
+      "get_playlist_time_range",
+      params: {"p_playlist_id": playlistId},
+    );
+
+    final result = response[0];
+
+    return {
+      "earliest_start_time": result["earliest_start_time"] != null
+          ? DateTime.parse(result["earliest_start_time"]).toLocal()
+          : null,
+      "latest_end_time": result["latest_end_time"] != null
+          ? DateTime.parse(result["latest_end_time"]).toLocal()
+          : null,
+    };
+  }
+
+  Future<Map<String, DateTime?>> _playlistTimeRangeFuture(String playlistId) =>
+      _playlistTimeRangeFutures.putIfAbsent(
+        playlistId,
+        () => getPlaylistTimeRange(playlistId),
+      );
+
+  void _refreshPlaylists() {
+    setState(() {
+      _playlistTimeRangeFutures.clear();
+      _playlistsFuture = _loadPlaylists();
+    });
+  }
 
   void _refreshBlends() {
     setState(() {
@@ -117,9 +168,147 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openNewPlaylist() {
+    final TextEditingController nameFieldController = TextEditingController();
+    final TextEditingController dateFieldController = TextEditingController();
+    DateTime? selectedEventDate;
+
     _closeActionMenu();
-    Navigator.of(context)
-        .push(CupertinoPageRoute<void>(builder: (_) => const Playlist()));
+
+    // Show action sheet to create new playlist
+
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.fromLTRB(
+            10,
+            10,
+            10,
+            MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    "Create new playlist",
+                    style: Theme.of(context).textTheme.headlineMedium!
+                        .apply(color: Colors.black),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextField(
+                  style: TextStyle(color: Colors.black),
+
+                  controller: nameFieldController,
+                  decoration: InputDecoration(
+                    hintText: "Name",
+                    hintStyle: TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(color: Colors.black.withAlpha(60)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 10),
+                TextField(
+                  controller: dateFieldController,
+                  style: TextStyle(color: Colors.black),
+                  readOnly: true,
+                  onTap: () async {
+                    final localizations = MaterialLocalizations.of(context);
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: selectedEventDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+
+                    if (pickedDate != null) {
+                      selectedEventDate = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                      );
+                      dateFieldController.text = localizations.formatMediumDate(
+                        pickedDate,
+                      );
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Date",
+                    hintStyle: TextStyle(color: Colors.black),
+                    suffixIcon: Icon(
+                      Icons.calendar_today,
+                      color: Colors.black54,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(color: Colors.black.withAlpha(60)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                LiquidGlassButton(
+                  height: 64,
+                  width: MediaQuery.of(context).size.width - 40,
+                  style: glassButtonStyle,
+                  child: Text(
+                    "Create",
+                    style: Theme.of(context).textTheme.labelMedium!
+                        .apply(color: Colors.black),
+                  ),
+                  onPressed: () async {
+                    var navigator = Navigator.of(context);
+                    final user = supabase.auth.currentUser;
+                    final eventDate = selectedEventDate;
+
+                    // Create event and store in database
+                    if (user == null) {
+                      throw StateError(
+                        'You must be signed in to create a playlist',
+                      );
+                    }
+
+                    if (eventDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Select a valid date.')),
+                      );
+                      return;
+                    }
+                    // Create playlist
+
+                    await addPlaylistData(
+                      playlistName: nameFieldController.text,
+                      date: selectedEventDate!,
+                    );
+
+                    if (!mounted) return;
+                    _refreshPlaylists();
+                    navigator.pop();
+                  },
+                ),
+                SizedBox(height: 60),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _openPendingBlends() {
@@ -177,6 +366,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _playlistsFuture = _loadPlaylists();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -196,7 +391,145 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               const Divider(),
-              const SizedBox(height: 22),
+              FutureBuilder(
+                future: _playlistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  final playlists = snapshot.data ?? ["Error"];
+                  print(playlists);
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) => Divider(
+                      thickness: 1,
+                      color: Color(0xFF6D6D6D).withValues(alpha: 0.7),
+                    ),
+                    itemCount: playlists.length,
+                    itemBuilder: (context, index) {
+                      final playlistId = playlists[index]["id"] as String;
+                      var playlistDate = DateTime.parse(
+                        playlists[index]["date"],
+                      );
+
+                      String formattedDate = DateFormat("d MMMM")
+                          .format(playlistDate);
+
+                      return FutureBuilder<Map<String, DateTime?>>(
+                        future: _playlistTimeRangeFuture(playlistId),
+                        builder: (context, timeRangeSnapshot) {
+                          if (timeRangeSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (timeRangeSnapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Text(
+                                'Error loading playlist time: '
+                                '${timeRangeSnapshot.error}',
+                              ),
+                            );
+                          }
+
+                          final playlistTimeRange = timeRangeSnapshot.data!;
+                          final earliestStart =
+                              playlistTimeRange["earliest_start_time"];
+                          final latestEnd =
+                              playlistTimeRange["latest_end_time"];
+
+                          return Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ListTile(
+                              onTap: () {
+                                var navigator = Navigator.of(context);
+                                navigator.push(
+                                  CupertinoPageRoute(
+                                    builder: (context) =>
+                                        Playlist(playlistId: playlistId),
+                                  ),
+                                );
+                              },
+                              title: Text(
+                                formattedDate,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .displayMedium!
+                                    .apply(
+                                      color: Colors.black,
+                                      fontWeightDelta: 1,
+                                    ),
+                              ),
+                              leading: Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                                child: Icon(
+                                  Icons.calendar_month,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 10),
+                                  Text(
+                                    playlists[index]["playlist_name"],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall,
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        earliestStart == null
+                                            ? "--"
+                                            : DateFormat("HHmm")
+                                                  .format(earliestStart),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                      SizedBox(width: 6),
+                                      SizedBox(
+                                        width: 10,
+                                        child: Divider(
+                                          color: Colors.black,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        latestEnd == null
+                                            ? "--"
+                                            : DateFormat("HHmm")
+                                                  .format(latestEnd),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
               Text('Blends', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8),
               _buildBlendContent(),

@@ -57,7 +57,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             bottom: 22,
             child: SizedBox(
               width: MediaQuery.of(context).size.width - 40,
-              height: 130,
+              height: 120,
               child: LiquidGlassLens(
                 style: glassCardStyle,
                 child: InkWell(
