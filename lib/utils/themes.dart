@@ -3,7 +3,8 @@ import 'package:material_ui/material_ui.dart';
 
 // App theme
 var appTheme = ThemeData(
-  brightness: Brightness.dark,
+  useMaterial3: true,
+  brightness: Brightness.light,
   fontFamily: "DM Sans",
   inputDecorationTheme: InputDecorationTheme(
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
@@ -15,28 +16,21 @@ var appTheme = ThemeData(
   textTheme: TextTheme(
     headlineLarge: TextStyle(
       fontSize: 40,
-      color: Colors.white,
       fontWeight: FontWeight.bold,
       letterSpacing: -1,
     ),
     headlineMedium: TextStyle(
       fontSize: 32,
-      color: Colors.black,
       fontWeight: FontWeight.bold,
       letterSpacing: -0.5,
     ),
     headlineSmall: TextStyle(
       fontSize: 24,
-      color: Colors.black,
       fontWeight: FontWeight.bold,
       letterSpacing: -0.5,
     ),
     bodyMedium: TextStyle(fontSize: 18),
-    bodySmall: TextStyle(
-      fontSize: 18,
-      color: Colors.black,
-      fontWeight: FontWeight.w400,
-    ),
+    bodySmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
     labelMedium: TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w700,
@@ -59,6 +53,13 @@ var glassCardStyle = LiquidGlassStyle(
     offset: Offset(0, 5),
   ),
   // color: Color(0x22FFFFFF),
+);
+
+var opaqueCardStyle = glassCardStyle.copyWith(
+  blur: 2,
+  refractionIndex: 1,
+  refractionWidth: 32,
+  color: Color(0xCCFFFFFF),
 );
 
 var glassButtonStyle = LiquidGlassStyle(

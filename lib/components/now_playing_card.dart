@@ -28,11 +28,7 @@ class NowPlayingCard extends StatelessWidget {
                 children: [
                   Icon(Icons.directions_car, size: 40, color: Colors.black),
                   SizedBox(width: 10),
-                  Text(
-                    "Travel to school",
-                    style: Theme.of(context).textTheme.bodyMedium!
-                        .apply(color: Colors.black),
-                  ),
+                  Text("Travel to school"),
                   Spacer(),
                   LiquidGlassLens(
                     style: LiquidGlassStyle(color: Color(0xFF0088FF)),

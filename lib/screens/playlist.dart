@@ -1,4 +1,5 @@
 import 'package:daylist/components/customappbar.dart';
+import 'package:daylist/components/floating_list_item.dart';
 import 'package:daylist/components/now_playing_card.dart';
 import 'package:daylist/utils/add_content.dart';
 import 'package:daylist/utils/icons_list.dart';
@@ -107,51 +108,108 @@ class _PlaylistState extends State<Playlist> {
                           var formattedEndTime = DateFormat("HHmm")
                               .format(endTime);
 
-                          return Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: ListTile(
-                              title: Text(
-                                events[index]["event_name"],
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayMedium!
-                                    .apply(
-                                      color: Colors.black,
-                                      fontWeightDelta: 1,
+                          return FloatingListItem(
+                            floatingChild: LiquidGlassLens(
+                              style: opaqueCardStyle,
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: ListTile(
+                                  title: Text(
+                                    events[index]["event_name"],
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displayMedium!
+                                        .apply(fontWeightDelta: 1),
+                                  ),
+                                  leading: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      0,
+                                      8,
+                                      8,
+                                      8,
                                     ),
-                              ),
-                              leading: Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                                child: Icon(
-                                  Icons.build,
-                                  color: Colors.black,
-                                  size: 30,
+                                    child: Icon(
+                                      Icons.build,
+                                      color: Colors.black,
+                                      size: 30,
+                                    ),
+                                  ),
+                                  subtitle: Row(
+                                    children: [
+                                      Text(
+                                        formattedStartTime,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                      SizedBox(width: 6),
+                                      SizedBox(
+                                        width: 10,
+                                        child: Divider(
+                                          color: Colors.black,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        formattedEndTime,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              subtitle: Row(
-                                children: [
-                                  Text(
-                                    formattedStartTime,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: ListTile(
+                                title: Text(
+                                  events[index]["event_name"],
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displayMedium!
+                                      .apply(fontWeightDelta: 1),
+                                ),
+                                leading: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    0,
+                                    8,
+                                    8,
+                                    8,
                                   ),
-                                  SizedBox(width: 6),
-                                  SizedBox(
-                                    width: 10,
-                                    child: Divider(
-                                      color: Colors.black,
-                                      thickness: 1,
+                                  child: Icon(
+                                    Icons.build,
+                                    color: Colors.black,
+                                    size: 30,
+                                  ),
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    Text(
+                                      formattedStartTime,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
                                     ),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    formattedEndTime,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
+                                    SizedBox(width: 6),
+                                    SizedBox(
+                                      width: 10,
+                                      child: Divider(
+                                        color: Colors.black,
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      formattedEndTime,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
@@ -195,8 +253,7 @@ class _PlaylistState extends State<Playlist> {
                                 "New",
                                 style: Theme.of(context)
                                     .textTheme
-                                    .displayMedium!
-                                    .apply(color: Colors.black),
+                                    .displayMedium,
                               ),
                             ],
                           ),
@@ -226,8 +283,7 @@ class _PlaylistState extends State<Playlist> {
                                           "Create new event",
                                           style: Theme.of(context)
                                               .textTheme
-                                              .headlineMedium!
-                                              .apply(color: Colors.black),
+                                              .headlineMedium,
                                         ),
                                       ),
                                       SizedBox(height: 10),
@@ -329,16 +385,9 @@ class _PlaylistState extends State<Playlist> {
                                           SizedBox(width: 10),
                                           Expanded(
                                             child: TextField(
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                              ),
-
                                               controller: nameFieldController,
                                               decoration: InputDecoration(
                                                 hintText: "Name",
-                                                hintStyle: TextStyle(
-                                                  color: Colors.black,
-                                                ),
                                                 border: OutlineInputBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(20),
@@ -366,7 +415,6 @@ class _PlaylistState extends State<Playlist> {
                                       SizedBox(height: 10),
                                       TextField(
                                         controller: dateFieldController,
-                                        style: TextStyle(color: Colors.black),
                                         readOnly: true,
                                         onTap: () async {
                                           final localizations =
@@ -395,9 +443,6 @@ class _PlaylistState extends State<Playlist> {
                                         },
                                         decoration: InputDecoration(
                                           hintText: "Date",
-                                          hintStyle: TextStyle(
-                                            color: Colors.black,
-                                          ),
                                           suffixIcon: Icon(
                                             Icons.calendar_today,
                                             color: Colors.black54,
@@ -431,10 +476,6 @@ class _PlaylistState extends State<Playlist> {
                                                     2 -
                                                 20,
                                             child: TextField(
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                              ),
-
                                               controller: startTimeController,
                                               readOnly: true,
                                               onTap: () async {
@@ -462,9 +503,6 @@ class _PlaylistState extends State<Playlist> {
                                               },
                                               decoration: InputDecoration(
                                                 hintText: "Start Time",
-                                                hintStyle: TextStyle(
-                                                  color: Colors.black,
-                                                ),
                                                 suffixIcon: Icon(
                                                   Icons.access_time,
                                                   color: Colors.black54,
@@ -499,10 +537,6 @@ class _PlaylistState extends State<Playlist> {
                                                     2 -
                                                 20,
                                             child: TextField(
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                              ),
-
                                               controller: endTimeController,
                                               readOnly: true,
                                               onTap: () async {
@@ -529,9 +563,6 @@ class _PlaylistState extends State<Playlist> {
                                               },
                                               decoration: InputDecoration(
                                                 hintText: "End Time",
-                                                hintStyle: TextStyle(
-                                                  color: Colors.black,
-                                                ),
                                                 suffixIcon: Icon(
                                                   Icons.access_time,
                                                   color: Colors.black54,
@@ -561,17 +592,11 @@ class _PlaylistState extends State<Playlist> {
                                       ),
                                       SizedBox(height: 10),
                                       TextField(
-                                        style: TextStyle(color: Colors.black),
-
                                         controller: notesTextController,
                                         maxLines: 6,
                                         minLines: 3,
                                         decoration: InputDecoration(
                                           hintText: "Add notes...",
-                                          hintStyle: TextStyle(
-                                            color: Colors.black,
-                                          ),
-
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(
                                               20,
@@ -601,8 +626,7 @@ class _PlaylistState extends State<Playlist> {
                                           "Create",
                                           style: Theme.of(context)
                                               .textTheme
-                                              .labelMedium!
-                                              .apply(color: Colors.black),
+                                              .labelMedium,
                                         ),
                                         onPressed: () async {
                                           var navigator = Navigator.of(context);

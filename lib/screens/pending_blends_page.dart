@@ -90,7 +90,7 @@ class _PendingBlendsPageState extends State<PendingBlendsPage> {
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(color: Color(0xFFDDDDDD)),
           ),
-          content: Text(message, style: const TextStyle(color: Colors.black)),
+          content: Text(message),
         ),
       );
   }
@@ -144,7 +144,6 @@ class _PendingBlendsPageState extends State<PendingBlendsPage> {
                         Text(
                           _errorMessage(snapshot.error),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.black),
                         ),
                         const SizedBox(height: 12),
                         TextButton(
@@ -181,7 +180,6 @@ class _PendingBlendsPageState extends State<PendingBlendsPage> {
                                 Text(
                                   'No pending invitations',
                                   style: TextStyle(
-                                    color: Colors.black,
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -190,7 +188,6 @@ class _PendingBlendsPageState extends State<PendingBlendsPage> {
                                 Text(
                                   'Blend invitations you send or receive will appear here.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.black54),
                                 ),
                               ],
                             ),
@@ -210,7 +207,7 @@ class _PendingBlendsPageState extends State<PendingBlendsPage> {
                   children: [
                     const Text(
                       'Review the blend requests you have received and sent.',
-                      style: TextStyle(color: Colors.black54, fontSize: 15),
+                      style: TextStyle(fontSize: 15),
                     ),
                     const SizedBox(height: 22),
                     if (data.incoming.isNotEmpty) ...[
@@ -264,11 +261,7 @@ class _SectionHeading extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(width: 8),
           Container(
@@ -279,11 +272,7 @@ class _SectionHeading extends StatelessWidget {
             ),
             child: Text(
               '$count',
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -329,7 +318,6 @@ class _IncomingInvitationCard extends StatelessWidget {
                         Text(
                           invitation.otherUsername,
                           style: const TextStyle(
-                            color: Colors.black,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -337,7 +325,7 @@ class _IncomingInvitationCard extends StatelessWidget {
                         const SizedBox(height: 3),
                         const Text(
                           'Invited you to blend',
-                          style: TextStyle(color: Colors.black54, fontSize: 13),
+                          style: TextStyle(fontSize: 13),
                         ),
                       ],
                     ),
@@ -350,7 +338,7 @@ class _IncomingInvitationCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   invitation.description!,
-                  style: const TextStyle(color: Colors.black87, fontSize: 15),
+                  style: const TextStyle(fontSize: 15),
                 ),
               ],
               const SizedBox(height: 16),
@@ -420,7 +408,6 @@ class _OutgoingInvitationCard extends StatelessWidget {
                         Text(
                           invitation.otherUsername,
                           style: const TextStyle(
-                            color: Colors.black,
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                           ),
@@ -428,7 +415,7 @@ class _OutgoingInvitationCard extends StatelessWidget {
                         const SizedBox(height: 3),
                         const Text(
                           'Invitation sent',
-                          style: TextStyle(color: Colors.black54, fontSize: 13),
+                          style: TextStyle(fontSize: 13),
                         ),
                       ],
                     ),
@@ -445,7 +432,6 @@ class _OutgoingInvitationCard extends StatelessWidget {
                     child: const Text(
                       'Pending',
                       style: TextStyle(
-                        color: Colors.black87,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -459,7 +445,7 @@ class _OutgoingInvitationCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   invitation.description!,
-                  style: const TextStyle(color: Colors.black87, fontSize: 14),
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ],
@@ -494,11 +480,7 @@ class _InvitationDateDetails extends StatelessWidget {
           Expanded(
             child: Text(
               summary,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
         ],

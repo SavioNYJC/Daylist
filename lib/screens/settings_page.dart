@@ -39,8 +39,7 @@ class SettingsPage extends StatelessWidget {
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                           child: Text(
                             'Account',
-                            style: Theme.of(context).textTheme.headlineMedium!
-                                .apply(color: Colors.black),
+                            style: Theme.of(context).textTheme.headlineMedium,
                           ),
                         ),
                         const Divider(
@@ -57,10 +56,7 @@ class SettingsPage extends StatelessWidget {
                             Icons.person_outline,
                             color: Colors.black,
                           ),
-                          title: const Text(
-                            'Account details',
-                            style: TextStyle(color: Colors.black),
-                          ),
+                          title: const Text('Account details'),
                           trailing: const Icon(
                             Icons.chevron_right,
                             color: Colors.black54,

@@ -90,15 +90,23 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 40),
                 TextField(
+                  style: TextStyle(color: Colors.white),
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: 'Enter email'),
+                  decoration: const InputDecoration(
+                    hintText: 'Enter email',
+                    hintStyle: TextStyle(color: Colors.white),
+                  ),
                 ),
                 SizedBox(height: 20),
                 TextField(
+                  style: TextStyle(color: Colors.white),
                   controller: _password,
                   obscureText: true,
-                  decoration: const InputDecoration(hintText: 'Enter password'),
+                  decoration: const InputDecoration(
+                    hintText: 'Enter password',
+                    hintStyle: TextStyle(color: Colors.white),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 LiquidGlassButton(
@@ -127,8 +135,10 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: Text(
                     "Forgot password?",
-                    style: Theme.of(context).textTheme.bodyMedium!
-                        .apply(decoration: TextDecoration.underline),
+                    style: Theme.of(context).textTheme.bodyMedium!.apply(
+                      decoration: TextDecoration.underline,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

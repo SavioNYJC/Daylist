@@ -68,7 +68,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text(
                   userFacingError(snapshot.error),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black),
                 ),
               ),
             );
@@ -76,12 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           final profile = snapshot.data;
           if (profile == null) {
-            return const Center(
-              child: Text(
-                'Profile not found.',
-                style: TextStyle(color: Colors.black),
-              ),
-            );
+            return const Center(child: Text('Profile not found.'));
           }
 
           return ListView(
@@ -99,13 +93,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.edit_outlined, color: Colors.black),
-                title: const Text(
-                  'Update account details',
-                  style: TextStyle(color: Colors.black),
-                ),
+                title: const Text('Update account details'),
                 onTap: () => _editAccountDetails(profile),
-              ), 
-
+              ),
 
               // sign out and delete account
               const Divider(height: 1, color: Color(0xFFDDDDDD)),
@@ -158,7 +148,8 @@ class _ProfilePageState extends State<ProfilePage> {
           .showSnackBar(SnackBar(content: Text(userFacingError(error))));
     }
   }
-// editing account details
+
+  // editing account details
   Future<void> _editAccountDetails(Profile profile) async {
     final usernameController = TextEditingController(
       text: profile.username ?? '',
@@ -236,10 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
           return AlertDialog(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
-            title: const Text(
-              'Update account details',
-              style: TextStyle(color: Colors.black),
-            ),
+            title: const Text('Update account details'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,14 +235,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 TextField(
                   controller: usernameController,
                   autofocus: true,
-                  style: const TextStyle(color: Colors.black),
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => saveUsername(),
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    labelStyle: TextStyle(color: Colors.black),
-                    floatingLabelStyle: TextStyle(color: Colors.black),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Username'),
                 ),
                 if (errorMessage != null) ...[
                   const SizedBox(height: 12),
@@ -270,10 +253,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: isSaving
                     ? null
                     : () => Navigator.of(dialogContext).pop(),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.black),
-                ),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: isSaving ? null : saveUsername,
@@ -283,7 +263,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save', style: TextStyle(color: Colors.black)),
+                    : const Text('Save'),
               ),
             ],
           );
@@ -293,8 +273,7 @@ class _ProfilePageState extends State<ProfilePage> {
     usernameController.dispose();
   }
 
-
-// error handling for account deletion
+  // error handling for account deletion
   String _deleteAccountFailureMessage(FunctionException error) {
     final details = error.details;
     final code = details is Map ? details['code'] : null;
@@ -340,12 +319,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               const Icon(Icons.error_outline, color: Colors.redAccent),
               const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: const TextStyle(color: Colors.black),
-                ),
-              ),
+              Expanded(child: Text(message)),
             ],
           ),
         ),
@@ -363,19 +337,15 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(28),
           side: const BorderSide(color: Color(0xFFDDDDDD)),
         ),
-        title: const Text(
-          'Delete account?',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Delete account?'),
         content: const Text(
           'This permanently deletes your account and its associated data. '
           'This action cannot be undone.',
-          style: TextStyle(color: Colors.black87),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+            child: const Text('Cancel'),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -426,12 +396,8 @@ class _ProfileDetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(color: Colors.black54)),
-      subtitle: Text(
-        value,
-        style: Theme.of(context).textTheme.bodyLarge!
-            .apply(color: Colors.black),
-      ),
+      title: Text(label),
+      subtitle: Text(value, style: Theme.of(context).textTheme.bodyLarge),
     );
   }
 }

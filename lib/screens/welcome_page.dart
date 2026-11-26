@@ -38,27 +38,34 @@ class _WelcomePageState extends State<WelcomePage> {
                   SizedBox(height: 60),
                   Text(
                     "Take control of your time.",
-                    style: Theme.of(context).textTheme.headlineLarge!
-                        .apply(decoration: TextDecoration.underline),
+                    style: Theme.of(context).textTheme.headlineLarge!.apply(
+                      color: Colors.white,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                   SizedBox(height: 40),
                   Text(
                     "Organize your day into playlists, share schedules with others and live a more productive life.",
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+                    style: Theme.of(context).textTheme.bodyMedium!
+                        .copyWith(fontSize: 20)
+                        .apply(color: Colors.white),
                   ),
                   SizedBox(height: 40),
                   TextField(
+                    style: TextStyle(color: Colors.white),
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: "Enter email to begin",
+                      hintStyle: TextStyle(color: Colors.white),
                     ),
                   ),
                   SizedBox(height: 20),
                   LiquidGlassButton(
                     child: Text(
                       "Register",
-                      style: Theme.of(context).textTheme.labelMedium,
+                      style: Theme.of(context).textTheme.labelMedium!
+                          .apply(color: Colors.white),
                     ),
                     onPressed: () {
                       var navigator = Navigator.of(context);
@@ -72,7 +79,10 @@ class _WelcomePageState extends State<WelcomePage> {
                     },
                   ),
                   SizedBox(height: 32),
-                  Text("Already have an account?"),
+                  Text(
+                    "Already have an account?",
+                    style: TextStyle(color: Colors.white),
+                  ),
                   SizedBox(height: 20),
                   LiquidGlassButton(
                     onPressed: () {
@@ -84,7 +94,8 @@ class _WelcomePageState extends State<WelcomePage> {
                     },
                     child: Text(
                       'Log in',
-                      style: Theme.of(context).textTheme.labelMedium,
+                      style: Theme.of(context).textTheme.labelMedium!
+                          .apply(color: Colors.white),
                     ),
                   ),
                 ],

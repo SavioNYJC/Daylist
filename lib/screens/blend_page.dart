@@ -69,7 +69,6 @@ class _BlendPageState extends State<BlendPage> {
                     child: Text(
                       _errorMessage(snapshot.error),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
                 );
@@ -83,7 +82,6 @@ class _BlendPageState extends State<BlendPage> {
                     child: Text(
                       _formatDay(day.day),
                       style: const TextStyle(
-                        color: Colors.black54,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -111,10 +109,7 @@ class _BlendPageState extends State<BlendPage> {
                       style: glassCardStyle,
                       child: Padding(
                         padding: const EdgeInsets.all(14),
-                        child: Text(
-                          widget.connection.description!,
-                          style: const TextStyle(color: Colors.black),
-                        ),
+                        child: Text(widget.connection.description!),
                       ),
                     ),
                   ],
@@ -228,10 +223,7 @@ class _DayChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xFFDDDDDD)),
         ),
-        child: Text(
-          '${day.day} ${months[day.month - 1]}',
-          style: const TextStyle(color: Colors.black),
-        ),
+        child: Text('${day.day} ${months[day.month - 1]}'),
       ),
     );
   }
@@ -257,11 +249,7 @@ class _ScheduleColumn extends StatelessWidget {
               maxLines: 2,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
           ),
         ),
@@ -308,12 +296,12 @@ class _ScheduleEventCard extends StatelessWidget {
                 event.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
               Text(
                 '${_time(event.startTime)} - ${_time(event.endTime)}',
                 maxLines: 1,
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
+                style: const TextStyle(fontSize: 12),
               ),
             ],
           ),
@@ -338,7 +326,7 @@ class _EmptyScheduleCard extends StatelessWidget {
             child: Text(
               'No events this day',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 13),
+              style: TextStyle(fontSize: 13),
             ),
           ),
         ),

@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(color: Color(0xFFDDDDDD)),
           ),
-          content: Text(message, style: const TextStyle(color: Colors.black)),
+          content: Text(message),
         ),
       );
   }
@@ -196,18 +196,14 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     "Create new playlist",
-                    style: Theme.of(context).textTheme.headlineMedium!
-                        .apply(color: Colors.black),
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ),
                 SizedBox(height: 10),
                 TextField(
-                  style: TextStyle(color: Colors.black),
-
                   controller: nameFieldController,
                   decoration: InputDecoration(
                     hintText: "Name",
-                    hintStyle: TextStyle(color: Colors.black),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide(color: Colors.black.withAlpha(60)),
@@ -222,7 +218,6 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 10),
                 TextField(
                   controller: dateFieldController,
-                  style: TextStyle(color: Colors.black),
                   readOnly: true,
                   onTap: () async {
                     final localizations = MaterialLocalizations.of(context);
@@ -246,7 +241,6 @@ class _HomePageState extends State<HomePage> {
                   },
                   decoration: InputDecoration(
                     hintText: "Date",
-                    hintStyle: TextStyle(color: Colors.black),
                     suffixIcon: Icon(
                       Icons.calendar_today,
                       color: Colors.black54,
@@ -269,8 +263,7 @@ class _HomePageState extends State<HomePage> {
                   style: glassButtonStyle,
                   child: Text(
                     "Create",
-                    style: Theme.of(context).textTheme.labelMedium!
-                        .apply(color: Colors.black),
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                   onPressed: () async {
                     var navigator = Navigator.of(context);
@@ -404,6 +397,15 @@ class _HomePageState extends State<HomePage> {
                   final playlists = snapshot.data ?? ["Error"];
                   print(playlists);
 
+                  if (playlists.length == 0) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        'No playlists yet. Use the + menu to create a playlist.',
+                      ),
+                    );
+                  }
+
                   return ListView.separated(
                     shrinkWrap: true,
                     separatorBuilder: (context, index) => Divider(
@@ -463,10 +465,7 @@ class _HomePageState extends State<HomePage> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .displayMedium!
-                                    .apply(
-                                      color: Colors.black,
-                                      fontWeightDelta: 1,
-                                    ),
+                                    .apply(fontWeightDelta: 1),
                               ),
                               leading: Padding(
                                 padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
@@ -620,10 +619,7 @@ class _HomePageState extends State<HomePage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _errorMessage(snapshot.error),
-                style: const TextStyle(color: Colors.black),
-              ),
+              Text(_errorMessage(snapshot.error)),
               TextButton(
                 onPressed: _refreshBlends,
                 child: const Text('Try again'),
@@ -642,7 +638,6 @@ class _HomePageState extends State<HomePage> {
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   'No blends yet. Use the + menu to create a blend or review invitations.',
-                  style: TextStyle(color: Colors.black54),
                 ),
               ),
               if (kDebugMode) _previewButton(),
@@ -718,7 +713,6 @@ class _QuickActionButton extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                    color: Colors.black,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -753,10 +747,7 @@ class _AcceptedBlendCard extends StatelessWidget {
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '–',
-            style: TextStyle(color: Colors.black54, fontSize: 22),
-          ),
+          child: Text('–', style: TextStyle(fontSize: 22)),
         ),
         Expanded(
           child: _BlendMemberCard(
@@ -811,7 +802,6 @@ class _BlendMemberCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.black,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -824,7 +814,6 @@ class _BlendMemberCard extends StatelessWidget {
                         subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.black),
                       ),
                     ),
                     const SizedBox(width: 4),
