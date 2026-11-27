@@ -32,8 +32,8 @@ class EventData {
       description: map['description'] as String?,
       location: map['location'] as String?,
       iconCodepoint: map['icon_codepoint'] as int?,
-      startTime: DateTime.parse(map['start_time'] as String),
-      endTime: DateTime.parse(map['end_time'] as String),
+      startTime: DateTime.parse(map['start_time'] as String).toLocal(),
+      endTime: DateTime.parse(map['end_time'] as String).toLocal(),
       created_at: DateTime.parse(map['created_at'] as String),
     );
   }

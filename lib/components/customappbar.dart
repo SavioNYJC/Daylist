@@ -6,10 +6,12 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.useLiquidGlassBackButton = true,
+    this.subtitle,
   });
 
   final String title;
   final bool useLiquidGlassBackButton;
+  final String? subtitle;
 
   @override
   Size get preferredSize => const Size.fromHeight(180);
@@ -35,6 +37,16 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
                 ? LiquidGlassLens(child: _buildBackButton(context))
                 : _buildBackButton(context),
           ),
+          if (subtitle != null)
+            Positioned(
+              left: 32,
+              bottom: 72,
+              child: Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodyMedium!
+                    .apply(fontWeightDelta: 1),
+              ),
+            ),
           Positioned(
             left: 32,
             bottom: 22,

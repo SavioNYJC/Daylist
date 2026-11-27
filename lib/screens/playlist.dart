@@ -4,15 +4,16 @@ import 'package:daylist/components/now_playing_card.dart';
 import 'package:daylist/utils/add_content.dart';
 import 'package:daylist/utils/icons_list.dart';
 import 'package:daylist/utils/themes.dart';
+import 'package:daylist/utils/user_facing_error.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Playlist extends StatefulWidget {
-  Playlist({super.key, required this.playlistId});
+  const Playlist({super.key, required this.playlistId});
 
-  String playlistId;
+  final String playlistId;
 
   @override
   State<Playlist> createState() => _PlaylistState();
@@ -32,6 +33,7 @@ class _PlaylistState extends State<Playlist> {
   final TextEditingController startTimeController = TextEditingController();
   final TextEditingController endTimeController = TextEditingController();
   final TextEditingController notesTextController = TextEditingController();
+
   DateTime? _selectedEventDate;
   TimeOfDay? _selectedStartTime;
   TimeOfDay? _selectedEndTime;
@@ -39,18 +41,71 @@ class _PlaylistState extends State<Playlist> {
   final supabase = Supabase.instance.client;
   late Future _eventsFuture;
 
-  Future _loadEvents() => supabase
-      .from("events")
-      .select(
-        "id, user_id, event_name, description, location, start_time, end_time, created_at, icon_codePoint, playlist_items!inner(playlist_id, position, created_at)",
-      )
-      .eq("playlist_items.playlist_id", widget.playlistId)
-      .order("start_time", ascending: true);
+  final Set<String> _pendingDeleteEventIds = {};
+  final Set<String> _collapsingEventIds = {};
+  final Set<String> _removedEventIds = {};
+
+  Future _loadEvents() async {
+    final playlist = await supabase
+        .from("playlists")
+        .select("date")
+        .eq("id", widget.playlistId)
+        .single();
+    final playlistDate = DateTime.parse(playlist["date"] as String);
+
+    setState(() {
+      _selectedEventDate = DateTime(
+        playlistDate.year,
+        playlistDate.month,
+        playlistDate.day,
+      );
+    });
+
+    dateFieldController.text = DateFormat.yMMMd().format(playlistDate);
+
+    return supabase
+        .from("events")
+        .select(
+          "id, user_id, event_name, description, location, start_time, end_time, created_at, icon_codePoint, playlist_items!inner(playlist_id, position, created_at)",
+        )
+        .eq("playlist_items.playlist_id", widget.playlistId)
+        .order("start_time", ascending: true);
+  }
 
   void _refreshEvents() {
     setState(() {
       _eventsFuture = _loadEvents();
     });
+  }
+
+  Future<void> _deleteEvent(String eventId) async {
+    if (!_pendingDeleteEventIds.add(eventId)) return;
+
+    try {
+      await supabase
+          .from('playlist_items')
+          .delete()
+          .eq('playlist_id', widget.playlistId)
+          .eq('event_id', eventId);
+
+      if (!mounted) return;
+      setState(() => _collapsingEventIds.add(eventId));
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      setState(() {
+        _collapsingEventIds.remove(eventId);
+        _removedEventIds.add(eventId);
+      });
+    } catch (error) {
+      debugPrint('Deleting playlist event failed: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(userFacingError(error))));
+      }
+    } finally {
+      _pendingDeleteEventIds.remove(eventId);
+    }
   }
 
   DateTime _dateTimeFor(DateTime date, TimeOfDay time) {
@@ -72,7 +127,12 @@ class _PlaylistState extends State<Playlist> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppbar(title: "Today's playlist"),
+      appBar: CustomAppbar(
+        title: "Today's playlist",
+        subtitle: _selectedEventDate != null
+            ? DateFormat("dd MMMM").format(_selectedEventDate!)
+            : "Date error",
+      ),
       backgroundColor: Colors.white,
       body: FutureBuilder(
         future: _eventsFuture,
@@ -85,6 +145,9 @@ class _PlaylistState extends State<Playlist> {
           }
 
           final events = snapshot.data ?? ["Error"];
+          final visibleEvents = events
+              .where((event) => !_removedEventIds.contains(event['id']))
+              .toList();
           print(events);
 
           return Stack(
@@ -97,25 +160,90 @@ class _PlaylistState extends State<Playlist> {
                       child: ListView.separated(
                         itemBuilder: (context, index) {
                           var startTime = DateTime.parse(
-                            events[index]["start_time"],
-                          );
+                            visibleEvents[index]["start_time"],
+                          ).toLocal();
                           var formattedStartTime = DateFormat("HHmm")
                               .format(startTime);
 
                           var endTime = DateTime.parse(
-                            events[index]["end_time"],
-                          );
+                            visibleEvents[index]["end_time"],
+                          ).toLocal();
                           var formattedEndTime = DateFormat("HHmm")
                               .format(endTime);
 
-                          return FloatingListItem(
+                          final eventId = visibleEvents[index]['id'] as String;
+
+                          final listItem = FloatingListItem(
+                            bottomMenu: LiquidGlassLens(
+                              style: opaqueCardStyle,
+                              child: Padding(
+                                padding: EdgeInsets.all(20),
+                                child: IntrinsicWidth(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              Icons.skip_next,
+                                              size: 38,
+                                              color: Color(0xff475fab),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              Icons.add,
+                                              size: 38,
+                                              color: Color(0xff475fab),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          IconButton(
+                                            onPressed: () =>
+                                                _deleteEvent(eventId),
+                                            icon: Icon(
+                                              Icons.delete,
+                                              size: 38,
+                                              color: Color(0xffff3b30),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Divider(
+                                        thickness: 1,
+                                        color: Color(0xFF6D6D6D),
+                                      ),
+                                      SizedBox(height: 10),
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth:
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.5,
+                                        ),
+                                        child: Text(
+                                          "Sample description goes here lorem ipsum dolor sit amet",
+                                          softWrap: true,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                             floatingChild: LiquidGlassLens(
                               style: opaqueCardStyle,
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: ListTile(
                                   title: Text(
-                                    events[index]["event_name"],
+                                    visibleEvents[index]["event_name"],
                                     style: Theme.of(context)
                                         .textTheme
                                         .displayMedium!
@@ -166,7 +294,7 @@ class _PlaylistState extends State<Playlist> {
                               padding: const EdgeInsets.all(10),
                               child: ListTile(
                                 title: Text(
-                                  events[index]["event_name"],
+                                  visibleEvents[index]["event_name"],
                                   style: Theme.of(context)
                                       .textTheme
                                       .displayMedium!
@@ -213,8 +341,17 @@ class _PlaylistState extends State<Playlist> {
                               ),
                             ),
                           );
+                          return AnimatedSize(
+                            key: ValueKey(eventId),
+                            alignment: Alignment.topCenter,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            child: _collapsingEventIds.contains(eventId)
+                                ? const SizedBox.shrink()
+                                : listItem,
+                          );
                         },
-                        itemCount: events.length,
+                        itemCount: visibleEvents.length,
                         separatorBuilder: (context, index) {
                           return Divider(
                             thickness: 1,
@@ -655,10 +792,6 @@ class _PlaylistState extends State<Playlist> {
                                                     .trim()
                                                     .isEmpty)
                                               'End Time',
-                                            if (notesTextController.text
-                                                .trim()
-                                                .isEmpty)
-                                              'Notes',
                                           ];
 
                                           // Create event and store in database
@@ -696,7 +829,12 @@ class _PlaylistState extends State<Playlist> {
                                           await addEventData(
                                             eventName: nameFieldController.text,
                                             description:
-                                                notesTextController.text,
+                                                notesTextController.text
+                                                    .trim()
+                                                    .isEmpty
+                                                ? null
+                                                : notesTextController.text
+                                                      .trim(),
                                             startTime: _dateTimeFor(
                                               eventDate!,
                                               startTime!,
@@ -713,6 +851,11 @@ class _PlaylistState extends State<Playlist> {
                                           if (!mounted) return;
                                           _refreshEvents();
                                           navigator.pop();
+
+                                          nameFieldController.text = "";
+                                          endTimeController.text = "";
+                                          startTimeController.text = "";
+                                          notesTextController.text = "";
                                         },
                                       ),
                                       SizedBox(height: 60),

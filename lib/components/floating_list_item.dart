@@ -5,10 +5,12 @@ class FloatingListItem extends StatefulWidget {
     super.key,
     required this.child,
     required this.floatingChild,
+    this.bottomMenu,
   });
 
   final Widget child;
   final Widget? floatingChild;
+  final Widget? bottomMenu;
 
   @override
   State<FloatingListItem> createState() => FloatingListItemState();
@@ -53,8 +55,8 @@ class FloatingListItemState extends State<FloatingListItem> {
             CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              targetAnchor: Alignment.center,
-              followerAnchor: Alignment.center,
+              targetAnchor: Alignment.topCenter,
+              followerAnchor: Alignment.topCenter,
               child: TweenAnimationBuilder(
                 tween: Tween(begin: 0.9, end: 1.0),
                 duration: Duration(milliseconds: 180),
@@ -62,11 +64,30 @@ class FloatingListItemState extends State<FloatingListItem> {
                 builder: (context, scale, child) {
                   return Transform.scale(scale: scale, child: child);
                 },
-                child: Material(
-                  color: Colors.transparent,
-                  elevation: 12,
-                  borderRadius: BorderRadius.circular(28),
-                  child: widget.floatingChild,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Main floating card
+                    Material(
+                      color: Colors.transparent,
+                      elevation: 12,
+                      borderRadius: BorderRadius.circular(28),
+                      child: widget.floatingChild,
+                    ),
+
+                    // Bottom menu
+                    if (widget.bottomMenu != null)
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Material(
+                          color: Colors.transparent,
+                          elevation: 16,
+                          borderRadius: BorderRadius.circular(28),
+                          child: widget.bottomMenu,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
