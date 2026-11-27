@@ -45,6 +45,8 @@ class _PlaylistState extends State<Playlist> {
   final Set<String> _collapsingEventIds = {};
   final Set<String> _removedEventIds = {};
 
+  String? _floatingEventId;
+
   Future _loadEvents() async {
     final playlist = await supabase
         .from("playlists")
@@ -148,7 +150,6 @@ class _PlaylistState extends State<Playlist> {
           final visibleEvents = events
               .where((event) => !_removedEventIds.contains(event['id']))
               .toList();
-          print(events);
 
           return Stack(
             children: [
@@ -174,6 +175,15 @@ class _PlaylistState extends State<Playlist> {
                           final eventId = visibleEvents[index]['id'] as String;
 
                           final listItem = FloatingListItem(
+                            onFloatingChanged: (isFloating) {
+                              setState(() {
+                                if (isFloating) {
+                                  _floatingEventId = eventId;
+                                } else if (_floatingEventId == eventId) {
+                                  _floatingEventId = null;
+                                }
+                              });
+                            },
                             bottomMenu: LiquidGlassLens(
                               style: opaqueCardStyle,
                               child: Padding(
@@ -228,7 +238,7 @@ class _PlaylistState extends State<Playlist> {
                                               0.5,
                                         ),
                                         child: Text(
-                                          "Sample description goes here lorem ipsum dolor sit amet",
+                                          visibleEvents[index]["description"],
                                           softWrap: true,
                                         ),
                                       ),
@@ -366,165 +376,246 @@ class _PlaylistState extends State<Playlist> {
               Column(
                 children: [
                   Spacer(),
-                  Row(
-                    children: [
-                      Spacer(),
-                      LiquidGlassButton(
-                        height: 72,
-                        style: glassButtonStyle,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add,
-                                color: const Color.fromARGB(255, 98, 96, 96),
-                                size: 30,
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                "New",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            backgroundColor: Colors.white,
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (context) {
-                              var selectedEventIcon = Icons.build;
-
-                              return AnimatedPadding(
-                                duration: const Duration(milliseconds: 200),
-                                padding: EdgeInsets.fromLTRB(
-                                  10,
-                                  10,
-                                  10,
-                                  MediaQuery.viewInsetsOf(context).bottom,
+                  AnimatedSlide(
+                    offset: _floatingEventId == null
+                        ? Offset.zero
+                        : Offset(0, 0.6),
+                    duration: Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Spacer(),
+                            LiquidGlassButton(
+                              height: 72,
+                              style: glassButtonStyle,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 20,
                                 ),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Text(
-                                          "Create new event",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headlineMedium,
-                                        ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      color: const Color.fromARGB(
+                                        255,
+                                        98,
+                                        96,
+                                        96,
                                       ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          StatefulBuilder(
-                                            builder: (context, setModalState) {
-                                              return SizedBox(
-                                                width: 56,
-                                                height: 56,
-                                                child: IconButton(
-                                                  tooltip: "Choose event icon",
-                                                  style: IconButton.styleFrom(
-                                                    foregroundColor:
-                                                        Colors.black,
-                                                    side: BorderSide(
-                                                      color: Colors.black
-                                                          .withAlpha(100),
-                                                    ),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
+                                      size: 30,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      "New",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .displayMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  backgroundColor: Colors.white,
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) {
+                                    var selectedEventIcon = Icons.build;
+
+                                    return AnimatedPadding(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      padding: EdgeInsets.fromLTRB(
+                                        10,
+                                        10,
+                                        10,
+                                        MediaQuery.viewInsetsOf(context).bottom,
+                                      ),
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Text(
+                                                "Create new event",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .headlineMedium,
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                StatefulBuilder(
+                                                  builder: (context, setModalState) {
+                                                    return SizedBox(
+                                                      width: 56,
+                                                      height: 56,
+                                                      child: IconButton(
+                                                        tooltip:
+                                                            "Choose event icon",
+                                                        style: IconButton.styleFrom(
+                                                          foregroundColor:
+                                                              Colors.black,
+                                                          side: BorderSide(
+                                                            color: Colors.black
+                                                                .withAlpha(100),
                                                           ),
-                                                    ),
-                                                  ),
-                                                  onPressed: () async {
-                                                    final icon = await showModalBottomSheet<IconData>(
-                                                      context: context,
-                                                      backgroundColor:
-                                                          Colors.white,
-                                                      isScrollControlled: true,
-                                                      builder: (pickerContext) {
-                                                        return SafeArea(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets.all(
-                                                                  16,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  20,
                                                                 ),
-                                                            child: GridView.count(
-                                                              crossAxisCount: 5,
-                                                              shrinkWrap: true,
-                                                              mainAxisSpacing:
-                                                                  8,
-                                                              crossAxisSpacing:
-                                                                  8,
-                                                              children: availableEventIcons.map((
-                                                                icon,
-                                                              ) {
-                                                                return IconButton(
-                                                                  tooltip: "Select icon",
-                                                                  style: IconButton.styleFrom(
-                                                                    foregroundColor:
-                                                                        Colors
-                                                                            .black,
-                                                                    side: BorderSide(
-                                                                      color: Colors
-                                                                          .black
-                                                                          .withAlpha(
-                                                                            60,
-                                                                          ),
-                                                                    ),
-                                                                    shape: RoundedRectangleBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                            16,
-                                                                          ),
-                                                                    ),
-                                                                  ),
-                                                                  onPressed: () =>
-                                                                      Navigator.of(
-                                                                        pickerContext,
-                                                                      ).pop(
-                                                                        icon,
+                                                          ),
+                                                        ),
+                                                        onPressed: () async {
+                                                          final icon = await showModalBottomSheet<IconData>(
+                                                            context: context,
+                                                            backgroundColor:
+                                                                Colors.white,
+                                                            isScrollControlled:
+                                                                true,
+                                                            builder: (pickerContext) {
+                                                              return SafeArea(
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsets.all(
+                                                                        16,
                                                                       ),
-                                                                  icon: Icon(
-                                                                    icon,
+                                                                  child: GridView.count(
+                                                                    crossAxisCount:
+                                                                        5,
+                                                                    shrinkWrap:
+                                                                        true,
+                                                                    mainAxisSpacing:
+                                                                        8,
+                                                                    crossAxisSpacing:
+                                                                        8,
+                                                                    children: availableEventIcons.map((
+                                                                      icon,
+                                                                    ) {
+                                                                      return IconButton(
+                                                                        tooltip: "Select icon",
+                                                                        style: IconButton.styleFrom(
+                                                                          foregroundColor:
+                                                                              Colors.black,
+                                                                          side: BorderSide(
+                                                                            color: Colors.black.withAlpha(
+                                                                              60,
+                                                                            ),
+                                                                          ),
+                                                                          shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius.circular(
+                                                                              16,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        onPressed: () => Navigator.of(
+                                                                          pickerContext,
+                                                                        ).pop(icon),
+                                                                        icon: Icon(
+                                                                          icon,
+                                                                        ),
+                                                                      );
+                                                                    }).toList(),
                                                                   ),
-                                                                );
-                                                              }).toList(),
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
 
-                                                    if (icon != null) {
-                                                      setModalState(() {
-                                                        selectedEventIcon =
-                                                            icon;
-                                                      });
-                                                    }
+                                                          if (icon != null) {
+                                                            setModalState(() {
+                                                              selectedEventIcon =
+                                                                  icon;
+                                                            });
+                                                          }
+                                                        },
+                                                        icon: Icon(
+                                                          selectedEventIcon,
+                                                        ),
+                                                      ),
+                                                    );
                                                   },
-                                                  icon: Icon(selectedEventIcon),
                                                 ),
-                                              );
-                                            },
-                                          ),
-                                          SizedBox(width: 10),
-                                          Expanded(
-                                            child: TextField(
-                                              controller: nameFieldController,
+                                                SizedBox(width: 10),
+                                                Expanded(
+                                                  child: TextField(
+                                                    controller:
+                                                        nameFieldController,
+                                                    decoration: InputDecoration(
+                                                      hintText: "Name",
+                                                      border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              20,
+                                                            ),
+                                                        borderSide: BorderSide(
+                                                          color: Colors.black
+                                                              .withAlpha(60),
+                                                        ),
+                                                      ),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  20,
+                                                                ),
+                                                            borderSide:
+                                                                BorderSide(
+                                                                  color: Colors
+                                                                      .black,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            SizedBox(height: 10),
+                                            TextField(
+                                              controller: dateFieldController,
+                                              readOnly: true,
+                                              onTap: () async {
+                                                final localizations =
+                                                    MaterialLocalizations.of(
+                                                      context,
+                                                    );
+                                                final pickedDate =
+                                                    await showDatePicker(
+                                                      context: context,
+                                                      initialDate:
+                                                          _selectedEventDate ??
+                                                          DateTime.now(),
+                                                      firstDate: DateTime(2000),
+                                                      lastDate: DateTime(2100),
+                                                    );
+
+                                                if (pickedDate != null) {
+                                                  _selectedEventDate = DateTime(
+                                                    pickedDate.year,
+                                                    pickedDate.month,
+                                                    pickedDate.day,
+                                                  );
+                                                  dateFieldController.text =
+                                                      localizations
+                                                          .formatMediumDate(
+                                                            pickedDate,
+                                                          );
+                                                }
+                                              },
                                               decoration: InputDecoration(
-                                                hintText: "Name",
+                                                hintText: "Date",
+                                                suffixIcon: Icon(
+                                                  Icons.calendar_today,
+                                                  color: Colors.black54,
+                                                ),
                                                 border: OutlineInputBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(20),
@@ -545,333 +636,303 @@ class _PlaylistState extends State<Playlist> {
                                                     ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
+                                            SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                SizedBox(
+                                                  width:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width /
+                                                          2 -
+                                                      20,
+                                                  child: TextField(
+                                                    controller:
+                                                        startTimeController,
+                                                    readOnly: true,
+                                                    onTap: () async {
+                                                      final localizations =
+                                                          MaterialLocalizations.of(
+                                                            context,
+                                                          );
+                                                      final pickedTime =
+                                                          await showTimePicker(
+                                                            context: context,
+                                                            initialTime:
+                                                                _selectedStartTime ??
+                                                                TimeOfDay.now(),
+                                                          );
 
-                                      SizedBox(height: 10),
-                                      TextField(
-                                        controller: dateFieldController,
-                                        readOnly: true,
-                                        onTap: () async {
-                                          final localizations =
-                                              MaterialLocalizations.of(context);
-                                          final pickedDate =
-                                              await showDatePicker(
-                                                context: context,
-                                                initialDate:
-                                                    _selectedEventDate ??
-                                                    DateTime.now(),
-                                                firstDate: DateTime(2000),
-                                                lastDate: DateTime(2100),
-                                              );
+                                                      if (pickedTime != null) {
+                                                        _selectedStartTime =
+                                                            pickedTime;
+                                                        startTimeController
+                                                            .text = localizations
+                                                            .formatTimeOfDay(
+                                                              pickedTime,
+                                                            );
+                                                      }
+                                                    },
+                                                    decoration: InputDecoration(
+                                                      hintText: "Start Time",
+                                                      suffixIcon: Icon(
+                                                        Icons.access_time,
+                                                        color: Colors.black54,
+                                                      ),
+                                                      border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              20,
+                                                            ),
+                                                        borderSide: BorderSide(
+                                                          color: Colors.black
+                                                              .withAlpha(60),
+                                                        ),
+                                                      ),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  20,
+                                                                ),
+                                                            borderSide:
+                                                                BorderSide(
+                                                                  color: Colors
+                                                                      .black,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                SizedBox(
+                                                  width:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width /
+                                                          2 -
+                                                      20,
+                                                  child: TextField(
+                                                    controller:
+                                                        endTimeController,
+                                                    readOnly: true,
+                                                    onTap: () async {
+                                                      final localizations =
+                                                          MaterialLocalizations.of(
+                                                            context,
+                                                          );
+                                                      final pickedTime =
+                                                          await showTimePicker(
+                                                            context: context,
+                                                            initialTime:
+                                                                _selectedEndTime ??
+                                                                TimeOfDay.now(),
+                                                          );
 
-                                          if (pickedDate != null) {
-                                            _selectedEventDate = DateTime(
-                                              pickedDate.year,
-                                              pickedDate.month,
-                                              pickedDate.day,
-                                            );
-                                            dateFieldController.text =
-                                                localizations.formatMediumDate(
-                                                  pickedDate,
+                                                      if (pickedTime != null) {
+                                                        _selectedEndTime =
+                                                            pickedTime;
+                                                        endTimeController.text =
+                                                            localizations
+                                                                .formatTimeOfDay(
+                                                                  pickedTime,
+                                                                );
+                                                      }
+                                                    },
+                                                    decoration: InputDecoration(
+                                                      hintText: "End Time",
+                                                      suffixIcon: Icon(
+                                                        Icons.access_time,
+                                                        color: Colors.black54,
+                                                      ),
+                                                      border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              20,
+                                                            ),
+                                                        borderSide: BorderSide(
+                                                          color: Colors.black
+                                                              .withAlpha(60),
+                                                        ),
+                                                      ),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  20,
+                                                                ),
+                                                            borderSide:
+                                                                BorderSide(
+                                                                  color: Colors
+                                                                      .black,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10),
+                                            TextField(
+                                              controller: notesTextController,
+                                              maxLines: 6,
+                                              minLines: 3,
+                                              decoration: InputDecoration(
+                                                hintText: "Add notes...",
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  borderSide: BorderSide(
+                                                    color: Colors.black
+                                                        .withAlpha(60),
+                                                  ),
+                                                ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
+                                                      borderSide: BorderSide(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                            SizedBox(height: 20),
+                                            LiquidGlassButton(
+                                              height: 64,
+                                              width:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .width -
+                                                  40,
+                                              style: glassButtonStyle,
+                                              child: Text(
+                                                "Create",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelMedium,
+                                              ),
+                                              onPressed: () async {
+                                                var navigator = Navigator.of(
+                                                  context,
                                                 );
-                                          }
-                                        },
-                                        decoration: InputDecoration(
-                                          hintText: "Date",
-                                          suffixIcon: Icon(
-                                            Icons.calendar_today,
-                                            color: Colors.black54,
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.black.withAlpha(60),
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            width:
-                                                MediaQuery.of(context)
-                                                        .size
-                                                        .width /
-                                                    2 -
-                                                20,
-                                            child: TextField(
-                                              controller: startTimeController,
-                                              readOnly: true,
-                                              onTap: () async {
-                                                final localizations =
-                                                    MaterialLocalizations.of(
-                                                      context,
-                                                    );
-                                                final pickedTime =
-                                                    await showTimePicker(
-                                                      context: context,
-                                                      initialTime:
-                                                          _selectedStartTime ??
-                                                          TimeOfDay.now(),
-                                                    );
+                                                final user =
+                                                    supabase.auth.currentUser;
+                                                final eventDate =
+                                                    _selectedEventDate;
+                                                final startTime =
+                                                    _selectedStartTime;
+                                                final endTime =
+                                                    _selectedEndTime;
+                                                final missingFields = <String>[
+                                                  if (nameFieldController.text
+                                                      .trim()
+                                                      .isEmpty)
+                                                    'Name',
+                                                  if (eventDate == null ||
+                                                      dateFieldController.text
+                                                          .trim()
+                                                          .isEmpty)
+                                                    'Date',
+                                                  if (startTime == null ||
+                                                      startTimeController.text
+                                                          .trim()
+                                                          .isEmpty)
+                                                    'Start Time',
+                                                  if (endTime == null ||
+                                                      endTimeController.text
+                                                          .trim()
+                                                          .isEmpty)
+                                                    'End Time',
+                                                ];
 
-                                                if (pickedTime != null) {
-                                                  _selectedStartTime =
-                                                      pickedTime;
-                                                  startTimeController.text =
-                                                      localizations
-                                                          .formatTimeOfDay(
-                                                            pickedTime,
-                                                          );
-                                                }
-                                              },
-                                              decoration: InputDecoration(
-                                                hintText: "Start Time",
-                                                suffixIcon: Icon(
-                                                  Icons.access_time,
-                                                  color: Colors.black54,
-                                                ),
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  borderSide: BorderSide(
-                                                    color: Colors.black
-                                                        .withAlpha(60),
-                                                  ),
-                                                ),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
+                                                // Create event and store in database
+                                                if (missingFields.isNotEmpty) {
+                                                  await showDialog<void>(
+                                                    context: context,
+                                                    builder: (dialogContext) =>
+                                                        AlertDialog(
+                                                          title: const Text(
+                                                            'Missing required fields',
                                                           ),
-                                                      borderSide: BorderSide(
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          SizedBox(
-                                            width:
-                                                MediaQuery.of(context)
-                                                        .size
-                                                        .width /
-                                                    2 -
-                                                20,
-                                            child: TextField(
-                                              controller: endTimeController,
-                                              readOnly: true,
-                                              onTap: () async {
-                                                final localizations =
-                                                    MaterialLocalizations.of(
-                                                      context,
-                                                    );
-                                                final pickedTime =
-                                                    await showTimePicker(
-                                                      context: context,
-                                                      initialTime:
-                                                          _selectedEndTime ??
-                                                          TimeOfDay.now(),
-                                                    );
-
-                                                if (pickedTime != null) {
-                                                  _selectedEndTime = pickedTime;
-                                                  endTimeController.text =
-                                                      localizations
-                                                          .formatTimeOfDay(
-                                                            pickedTime,
-                                                          );
-                                                }
-                                              },
-                                              decoration: InputDecoration(
-                                                hintText: "End Time",
-                                                suffixIcon: Icon(
-                                                  Icons.access_time,
-                                                  color: Colors.black54,
-                                                ),
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  borderSide: BorderSide(
-                                                    color: Colors.black
-                                                        .withAlpha(60),
-                                                  ),
-                                                ),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
+                                                          content: Text(
+                                                            'Please complete: ${missingFields.join(', ')}.',
                                                           ),
-                                                      borderSide: BorderSide(
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 10),
-                                      TextField(
-                                        controller: notesTextController,
-                                        maxLines: 6,
-                                        minLines: 3,
-                                        decoration: InputDecoration(
-                                          hintText: "Add notes...",
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.black.withAlpha(60),
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      LiquidGlassButton(
-                                        height: 64,
-                                        width:
-                                            MediaQuery.of(context).size.width -
-                                            40,
-                                        style: glassButtonStyle,
-                                        child: Text(
-                                          "Create",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium,
-                                        ),
-                                        onPressed: () async {
-                                          var navigator = Navigator.of(context);
-                                          final user =
-                                              supabase.auth.currentUser;
-                                          final eventDate = _selectedEventDate;
-                                          final startTime = _selectedStartTime;
-                                          final endTime = _selectedEndTime;
-                                          final missingFields = <String>[
-                                            if (nameFieldController.text
-                                                .trim()
-                                                .isEmpty)
-                                              'Name',
-                                            if (eventDate == null ||
-                                                dateFieldController.text
-                                                    .trim()
-                                                    .isEmpty)
-                                              'Date',
-                                            if (startTime == null ||
-                                                startTimeController.text
-                                                    .trim()
-                                                    .isEmpty)
-                                              'Start Time',
-                                            if (endTime == null ||
-                                                endTimeController.text
-                                                    .trim()
-                                                    .isEmpty)
-                                              'End Time',
-                                          ];
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                    dialogContext,
+                                                                  ).pop(),
+                                                              child: const Text(
+                                                                'OK',
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                  );
+                                                  return;
+                                                }
 
-                                          // Create event and store in database
-                                          if (missingFields.isNotEmpty) {
-                                            await showDialog<void>(
-                                              context: context,
-                                              builder: (dialogContext) =>
-                                                  AlertDialog(
-                                                    title: const Text(
-                                                      'Missing required fields',
-                                                    ),
-                                                    content: Text(
-                                                      'Please complete: ${missingFields.join(', ')}.',
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                              dialogContext,
-                                                            ).pop(),
-                                                        child: const Text('OK'),
-                                                      ),
-                                                    ],
+                                                if (user == null) {
+                                                  throw StateError(
+                                                    'You must be signed in to create an event',
+                                                  );
+                                                }
+
+                                                await addEventData(
+                                                  eventName:
+                                                      nameFieldController.text,
+                                                  description:
+                                                      notesTextController.text
+                                                          .trim()
+                                                          .isEmpty
+                                                      ? null
+                                                      : notesTextController.text
+                                                            .trim(),
+                                                  startTime: _dateTimeFor(
+                                                    eventDate!,
+                                                    startTime!,
                                                   ),
-                                            );
-                                            return;
-                                          }
+                                                  endTime: _dateTimeFor(
+                                                    eventDate,
+                                                    endTime!,
+                                                  ),
+                                                  iconCodepoint:
+                                                      selectedEventIcon
+                                                          .codePoint,
+                                                  playlistId: widget.playlistId,
+                                                );
 
-                                          if (user == null) {
-                                            throw StateError(
-                                              'You must be signed in to create an event',
-                                            );
-                                          }
+                                                if (!mounted) return;
+                                                _refreshEvents();
+                                                navigator.pop();
 
-                                          await addEventData(
-                                            eventName: nameFieldController.text,
-                                            description:
-                                                notesTextController.text
-                                                    .trim()
-                                                    .isEmpty
-                                                ? null
-                                                : notesTextController.text
-                                                      .trim(),
-                                            startTime: _dateTimeFor(
-                                              eventDate!,
-                                              startTime!,
+                                                nameFieldController.text = "";
+                                                endTimeController.text = "";
+                                                startTimeController.text = "";
+                                                notesTextController.text = "";
+                                              },
                                             ),
-                                            endTime: _dateTimeFor(
-                                              eventDate,
-                                              endTime!,
-                                            ),
-                                            iconCodepoint:
-                                                selectedEventIcon.codePoint,
-                                            playlistId: widget.playlistId,
-                                          );
-
-                                          if (!mounted) return;
-                                          _refreshEvents();
-                                          navigator.pop();
-
-                                          nameFieldController.text = "";
-                                          endTimeController.text = "";
-                                          startTimeController.text = "";
-                                          notesTextController.text = "";
-                                        },
+                                            SizedBox(height: 60),
+                                          ],
+                                        ),
                                       ),
-                                      SizedBox(height: 60),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      SizedBox(width: 20),
-                    ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            SizedBox(width: 20),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        NowPlayingCard(eventName: "Travel to school"),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 10),
-                  NowPlayingCard(eventName: "Travel to school"),
                 ],
               ),
             ],
