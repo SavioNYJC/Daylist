@@ -80,8 +80,19 @@ class _PlaylistState extends State<Playlist> {
     });
   }
 
+  void _setFloatingEvent(String eventId, bool isFloating) {
+    if (!isFloating && _floatingEventId != eventId) return;
+
+    final nextEventId = isFloating ? eventId : null;
+    if (_floatingEventId == nextEventId) return;
+
+    setState(() => _floatingEventId = nextEventId);
+  }
+
   Future<void> _deleteEvent(String eventId) async {
     if (!_pendingDeleteEventIds.add(eventId)) return;
+
+    _setFloatingEvent(eventId, false);
 
     try {
       await supabase
@@ -174,15 +185,12 @@ class _PlaylistState extends State<Playlist> {
 
                           final eventId = visibleEvents[index]['id'] as String;
 
+                          final iconCode =
+                              visibleEvents[index]["icon_codePoint"];
+
                           final listItem = FloatingListItem(
                             onFloatingChanged: (isFloating) {
-                              setState(() {
-                                if (isFloating) {
-                                  _floatingEventId = eventId;
-                                } else if (_floatingEventId == eventId) {
-                                  _floatingEventId = null;
-                                }
-                              });
+                              _setFloatingEvent(eventId, isFloating);
                             },
                             bottomMenu: LiquidGlassLens(
                               style: opaqueCardStyle,
@@ -252,12 +260,16 @@ class _PlaylistState extends State<Playlist> {
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: ListTile(
-                                  title: Text(
-                                    visibleEvents[index]["event_name"],
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displayMedium!
-                                        .apply(fontWeightDelta: 1),
+                                  title: Row(
+                                    children: [
+                                      Text(
+                                        visibleEvents[index]["event_name"],
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displayMedium!
+                                            .apply(fontWeightDelta: 1),
+                                      ),
+                                    ],
                                   ),
                                   leading: Padding(
                                     padding: const EdgeInsets.fromLTRB(
@@ -267,7 +279,10 @@ class _PlaylistState extends State<Playlist> {
                                       8,
                                     ),
                                     child: Icon(
-                                      Icons.build,
+                                      IconData(
+                                        iconCode,
+                                        fontFamily: "MaterialIcons",
+                                      ),
                                       color: Colors.black,
                                       size: 30,
                                     ),
@@ -318,7 +333,10 @@ class _PlaylistState extends State<Playlist> {
                                     8,
                                   ),
                                   child: Icon(
-                                    Icons.build,
+                                    IconData(
+                                      iconCode,
+                                      fontFamily: "MaterialIcons",
+                                    ),
                                     color: Colors.black,
                                     size: 30,
                                   ),
@@ -907,6 +925,9 @@ class _PlaylistState extends State<Playlist> {
                                                 );
 
                                                 if (!mounted) return;
+                                                _selectedStartTime = null;
+                                                _selectedEndTime = null;
+                                                selectedEventIcon = Icons.build;
                                                 _refreshEvents();
                                                 navigator.pop();
 
