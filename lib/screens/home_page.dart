@@ -1,3 +1,5 @@
+import 'package:daylist/components/accepted_blend_card.dart';
+import 'package:daylist/components/home_quick_action_button.dart';
 import 'package:daylist/utils/add_content.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -43,6 +45,9 @@ class _HomePageState extends State<HomePage> {
   late Future _playlistsFuture;
   final Map<String, Future<Map<String, DateTime?>>> _playlistTimeRangeFutures =
       {};
+  final Set<String> _pendingDeletePlaylistIds = {};
+  final Set<String> _collapsingPlaylistIds = {};
+  final Set<String> _removedPlaylistIds = {};
 
   Future<BlendHomeData> _loadBlends() =>
       widget.blendLoader?.call() ?? _blendService.loadHomeData();
@@ -87,6 +92,7 @@ class _HomePageState extends State<HomePage> {
   void _refreshPlaylists() {
     setState(() {
       _playlistTimeRangeFutures.clear();
+      _removedPlaylistIds.clear();
       _playlistsFuture = _loadPlaylists();
     });
   }
@@ -116,7 +122,7 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(color: Color(0xFFDDDDDD)),
           ),
-          content: Text(message, style: const TextStyle(color: Colors.black)),
+          content: Text(message),
         ),
       );
   }
@@ -196,18 +202,14 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     "Create new playlist",
-                    style: Theme.of(context).textTheme.headlineMedium!
-                        .apply(color: Colors.black),
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                 ),
                 SizedBox(height: 10),
                 TextField(
-                  style: TextStyle(color: Colors.black),
-
                   controller: nameFieldController,
                   decoration: InputDecoration(
                     hintText: "Name",
-                    hintStyle: TextStyle(color: Colors.black),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide(color: Colors.black.withAlpha(60)),
@@ -222,7 +224,6 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 10),
                 TextField(
                   controller: dateFieldController,
-                  style: TextStyle(color: Colors.black),
                   readOnly: true,
                   onTap: () async {
                     final localizations = MaterialLocalizations.of(context);
@@ -246,7 +247,6 @@ class _HomePageState extends State<HomePage> {
                   },
                   decoration: InputDecoration(
                     hintText: "Date",
-                    hintStyle: TextStyle(color: Colors.black),
                     suffixIcon: Icon(
                       Icons.calendar_today,
                       color: Colors.black54,
@@ -269,8 +269,7 @@ class _HomePageState extends State<HomePage> {
                   style: glassButtonStyle,
                   child: Text(
                     "Create",
-                    style: Theme.of(context).textTheme.labelMedium!
-                        .apply(color: Colors.black),
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                   onPressed: () async {
                     var navigator = Navigator.of(context);
@@ -300,6 +299,9 @@ class _HomePageState extends State<HomePage> {
                     if (!mounted) return;
                     _refreshPlaylists();
                     navigator.pop();
+
+                    nameFieldController.text = "";
+                    dateFieldController.text = "";
                   },
                 ),
                 SizedBox(height: 60),
@@ -365,6 +367,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _deletePlaylist(String playlistId) async {
+    if (!_pendingDeletePlaylistIds.add(playlistId)) return;
+
+    try {
+      await supabase.from('playlists').delete().eq('id', playlistId);
+      if (!mounted) return;
+
+      setState(() => _collapsingPlaylistIds.add(playlistId));
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      setState(() {
+        _collapsingPlaylistIds.remove(playlistId);
+        _removedPlaylistIds.add(playlistId);
+      });
+      _showMessage('Playlist deleted.');
+    } catch (error) {
+      debugPrint('Deleting playlist failed: $error');
+      if (mounted) _showMessage(userFacingError(error));
+    } finally {
+      _pendingDeletePlaylistIds.remove(playlistId);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -402,130 +427,193 @@ class _HomePageState extends State<HomePage> {
                   }
 
                   final playlists = snapshot.data ?? ["Error"];
+                  final visiblePlaylists = playlists
+                      .where(
+                        (playlist) =>
+                            !_removedPlaylistIds.contains(playlist["id"]),
+                      )
+                      .toList();
                   print(playlists);
 
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) => Divider(
-                      thickness: 1,
-                      color: Color(0xFF6D6D6D).withValues(alpha: 0.7),
-                    ),
-                    itemCount: playlists.length,
-                    itemBuilder: (context, index) {
-                      final playlistId = playlists[index]["id"] as String;
+                  if (visiblePlaylists.isEmpty) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        'No playlists yet. Use the + menu to create a playlist.',
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List<Widget>.generate(visiblePlaylists.length, (
+                      index,
+                    ) {
+                      final playlistId =
+                          visiblePlaylists[index]["id"] as String;
                       var playlistDate = DateTime.parse(
-                        playlists[index]["date"],
+                        visiblePlaylists[index]["date"],
                       );
 
                       String formattedDate = DateFormat("d MMMM")
                           .format(playlistDate);
 
-                      return FutureBuilder<Map<String, DateTime?>>(
-                        future: _playlistTimeRangeFuture(playlistId),
-                        builder: (context, timeRangeSnapshot) {
-                          if (timeRangeSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
-                          if (timeRangeSnapshot.hasError) {
-                            return Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Text(
-                                'Error loading playlist time: '
-                                '${timeRangeSnapshot.error}',
-                              ),
-                            );
-                          }
-
-                          final playlistTimeRange = timeRangeSnapshot.data!;
-                          final earliestStart =
-                              playlistTimeRange["earliest_start_time"];
-                          final latestEnd =
-                              playlistTimeRange["latest_end_time"];
-
-                          return Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: ListTile(
-                              onTap: () {
-                                var navigator = Navigator.of(context);
-                                navigator.push(
-                                  CupertinoPageRoute(
-                                    builder: (context) =>
-                                        Playlist(playlistId: playlistId),
-                                  ),
-                                );
-                              },
-                              title: Text(
-                                formattedDate,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayMedium!
-                                    .apply(
-                                      color: Colors.black,
-                                      fontWeightDelta: 1,
-                                    ),
-                              ),
-                              leading: Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                                child: Icon(
-                                  Icons.calendar_month,
-                                  color: Colors.black,
-                                  size: 30,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      return AnimatedSize(
+                        key: ValueKey(playlistId),
+                        alignment: Alignment.topCenter,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        child: _collapsingPlaylistIds.contains(playlistId)
+                            ? const SizedBox.shrink()
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  SizedBox(height: 10),
-                                  Text(
-                                    playlists[index]["playlist_name"],
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
-                                    textAlign: TextAlign.left,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        earliestStart == null
-                                            ? "--"
-                                            : DateFormat("HHmm")
-                                                  .format(earliestStart),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                      SizedBox(width: 6),
-                                      SizedBox(
-                                        width: 10,
-                                        child: Divider(
-                                          color: Colors.black,
-                                          thickness: 1,
+                                  if (index > 0)
+                                    Divider(
+                                      thickness: 1,
+                                      color: Color(0xFF6D6D6D)
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                  FutureBuilder<Map<String, DateTime?>>(
+                                    future: _playlistTimeRangeFuture(
+                                      playlistId,
+                                    ),
+                                    builder: (context, timeRangeSnapshot) {
+                                      if (timeRangeSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Padding(
+                                          padding: EdgeInsets.all(10),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      }
+                                      if (timeRangeSnapshot.hasError) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Text(
+                                            'Error loading playlist time: '
+                                            '${timeRangeSnapshot.error}',
+                                          ),
+                                        );
+                                      }
+
+                                      final playlistTimeRange =
+                                          timeRangeSnapshot.data!;
+                                      final earliestStart =
+                                          playlistTimeRange["earliest_start_time"];
+                                      final latestEnd =
+                                          playlistTimeRange["latest_end_time"];
+
+                                      return Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: ListTile(
+                                          trailing: SizedBox(
+                                            width: 48,
+                                            height: 48,
+                                            child: LiquidGlassLens(
+                                              style: glassButtonStyle,
+                                              child: IconButton(
+                                                onPressed: () =>
+                                                    _deletePlaylist(playlistId),
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                  size: 30,
+                                                  color: Color(0xffff3b30),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          onTap: () async {
+                                            await Navigator.of(
+                                              context,
+                                            ).push<void>(
+                                              CupertinoPageRoute<void>(
+                                                builder: (context) => Playlist(
+                                                  playlistId: playlistId,
+                                                ),
+                                              ),
+                                            );
+                                            if (mounted) _refreshPlaylists();
+                                          },
+                                          title: Text(
+                                            formattedDate,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .displayMedium!
+                                                .apply(fontWeightDelta: 1),
+                                          ),
+                                          leading: Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              0,
+                                              8,
+                                              8,
+                                              8,
+                                            ),
+                                            child: Icon(
+                                              Icons.calendar_month,
+                                              color: Colors.black,
+                                              size: 30,
+                                            ),
+                                          ),
+                                          subtitle: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(height: 10),
+                                              Text(
+                                                visiblePlaylists[index]["playlist_name"],
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall,
+                                                textAlign: TextAlign.left,
+                                              ),
+                                              SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    earliestStart == null
+                                                        ? "--"
+                                                        : DateFormat("HHmm")
+                                                              .format(
+                                                                earliestStart,
+                                                              ),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall,
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  SizedBox(
+                                                    width: 10,
+                                                    child: Divider(
+                                                      color: Colors.black,
+                                                      thickness: 1,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  Text(
+                                                    latestEnd == null
+                                                        ? "--"
+                                                        : DateFormat(
+                                                            "HHmm",
+                                                          ).format(latestEnd),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        latestEnd == null
-                                            ? "--"
-                                            : DateFormat("HHmm")
-                                                  .format(latestEnd),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                            ),
-                          );
-                        },
                       );
-                    },
+                    }),
                   );
                 },
               ),
@@ -553,17 +641,17 @@ class _HomePageState extends State<HomePage> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    _QuickActionButton(
+                    QuickActionButton(
                       label: 'New playlist',
                       icon: Icons.playlist_add,
                       onTap: _openNewPlaylist,
                     ),
-                    _QuickActionButton(
+                    QuickActionButton(
                       label: 'Pending blends',
                       icon: Icons.notifications_none,
                       onTap: _openPendingBlends,
                     ),
-                    _QuickActionButton(
+                    QuickActionButton(
                       label: 'New blend',
                       icon: Icons.add,
                       onTap: _isInviting ? null : _inviteBlend,
@@ -620,10 +708,7 @@ class _HomePageState extends State<HomePage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _errorMessage(snapshot.error),
-                style: const TextStyle(color: Colors.black),
-              ),
+              Text(_errorMessage(snapshot.error)),
               TextButton(
                 onPressed: _refreshBlends,
                 child: const Text('Try again'),
@@ -642,7 +727,6 @@ class _HomePageState extends State<HomePage> {
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   'No blends yet. Use the + menu to create a blend or review invitations.',
-                  style: TextStyle(color: Colors.black54),
                 ),
               ),
               if (kDebugMode) _previewButton(),
@@ -656,7 +740,7 @@ class _HomePageState extends State<HomePage> {
             for (final connection in data.accepted)
               Padding(
                 padding: const EdgeInsets.only(bottom: 14),
-                child: _AcceptedBlendCard(
+                child: AcceptedBlendCard(
                   connection: connection,
                   onTap: () {
                     Navigator.of(context).push(
@@ -683,159 +767,4 @@ class _HomePageState extends State<HomePage> {
       style: TextButton.styleFrom(foregroundColor: Colors.black),
     ),
   );
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.white,
-        elevation: 5,
-        shadowColor: Colors.black26,
-        shape: const StadiumBorder(side: BorderSide(color: Color(0xFFE0DDE4))),
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const StadiumBorder(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 20, color: Colors.black87),
-                const SizedBox(width: 10),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AcceptedBlendCard extends StatelessWidget {
-  const _AcceptedBlendCard({required this.connection, required this.onTap});
-
-  final BlendConnection connection;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _BlendMemberCard(
-            title: 'You',
-            subtitle:
-                connection.myPreviewEvent ?? _blendCardFallback(connection),
-            icon: Icons.directions_car_outlined,
-            onTap: onTap,
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '–',
-            style: TextStyle(color: Colors.black54, fontSize: 22),
-          ),
-        ),
-        Expanded(
-          child: _BlendMemberCard(
-            title: connection.otherUsername,
-            subtitle:
-                connection.otherPreviewEvent ?? _blendCardFallback(connection),
-            icon: Icons.bookmark_border,
-            onTap: onTap,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _blendCardFallback(BlendConnection connection) {
-    final dateCount = connection.selectedDates.length;
-    return dateCount == 0
-        ? 'Nothing scheduled'
-        : '$dateCount ${dateCount == 1 ? 'date' : 'dates'} selected';
-  }
-}
-
-class _BlendMemberCard extends StatelessWidget {
-  const _BlendMemberCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return LiquidGlassLens(
-      style: glassCardStyle,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        child: SizedBox(
-          height: 126,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(icon, color: Colors.black, size: 22),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

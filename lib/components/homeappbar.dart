@@ -47,8 +47,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             bottom: 170,
             child: Text(
               'Your Mix',
-              style: Theme.of(context).textTheme.headlineLarge!
-                  .apply(color: Colors.black),
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
           ),
 
@@ -91,10 +90,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                             ),
                             Text(
                               "Travel to school",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium!
+                                  .copyWith(fontSize: 20),
                             ),
                           ],
                         ),
