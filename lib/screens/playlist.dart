@@ -1,4 +1,5 @@
 import 'package:daylist/components/customappbar.dart';
+import 'package:daylist/components/event_location_picker.dart';
 import 'package:daylist/components/floating_list_item.dart';
 import 'package:daylist/components/now_playing_card.dart';
 import 'package:daylist/utils/add_content.dart';
@@ -33,6 +34,7 @@ class _PlaylistState extends State<Playlist> {
   final TextEditingController startTimeController = TextEditingController();
   final TextEditingController endTimeController = TextEditingController();
   final TextEditingController notesTextController = TextEditingController();
+  final TextEditingController locationFieldController = TextEditingController();
 
   DateTime? _selectedEventDate;
   TimeOfDay? _selectedStartTime;
@@ -46,6 +48,12 @@ class _PlaylistState extends State<Playlist> {
   final Set<String> _removedEventIds = {};
 
   String? _floatingEventId;
+
+  @override
+  void dispose() {
+    locationFieldController.dispose();
+    super.dispose();
+  }
 
   Future _loadEvents() async {
     final playlist = await supabase
@@ -195,7 +203,7 @@ class _PlaylistState extends State<Playlist> {
                             bottomMenu: LiquidGlassLens(
                               style: opaqueCardStyle,
                               child: Padding(
-                                padding: EdgeInsets.all(20),
+                                padding: EdgeInsets.all(16),
                                 child: IntrinsicWidth(
                                   child: Column(
                                     children: [
@@ -210,7 +218,7 @@ class _PlaylistState extends State<Playlist> {
                                               color: Color(0xff475fab),
                                             ),
                                           ),
-                                          SizedBox(width: 10),
+                                          SizedBox(width: 20),
                                           IconButton(
                                             onPressed: () {},
                                             icon: Icon(
@@ -219,7 +227,7 @@ class _PlaylistState extends State<Playlist> {
                                               color: Color(0xff475fab),
                                             ),
                                           ),
-                                          SizedBox(width: 10),
+                                          SizedBox(width: 20),
                                           IconButton(
                                             onPressed: () =>
                                                 _deleteEvent(eventId),
@@ -236,20 +244,23 @@ class _PlaylistState extends State<Playlist> {
                                         thickness: 1,
                                         color: Color(0xFF6D6D6D),
                                       ),
-                                      SizedBox(height: 10),
-                                      ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth:
-                                              MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.5,
+                                      if (visibleEvents[index]["description"] !=
+                                          null) ...[
+                                        SizedBox(height: 10),
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxWidth:
+                                                MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.5,
+                                          ),
+                                          child: Text(
+                                            visibleEvents[index]["description"],
+                                            softWrap: true,
+                                          ),
                                         ),
-                                        child: Text(
-                                          visibleEvents[index]["description"],
-                                          softWrap: true,
-                                        ),
-                                      ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -260,7 +271,9 @@ class _PlaylistState extends State<Playlist> {
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: ListTile(
-                                  title: Row(
+                                  title: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         visibleEvents[index]["event_name"],
@@ -269,6 +282,28 @@ class _PlaylistState extends State<Playlist> {
                                             .displayMedium!
                                             .apply(fontWeightDelta: 1),
                                       ),
+                                      SizedBox(height: 4),
+                                      Divider(
+                                        thickness: 1,
+                                        color: Color(0xff6d6d6d),
+                                      ),
+                                      SizedBox(height: 4),
+                                      if (events[index]["location"] !=
+                                          null) ...[
+                                        Row(
+                                          children: [
+                                            Icon(Icons.location_on, size: 30),
+                                            SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                events[index]["location"],
+                                                softWrap: true,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                      ],
                                     ],
                                   ),
                                   leading: Padding(
@@ -285,6 +320,19 @@ class _PlaylistState extends State<Playlist> {
                                       ),
                                       color: Colors.black,
                                       size: 30,
+                                    ),
+                                  ),
+                                  trailing: SizedBox(
+                                    height: 60,
+                                    width: 60,
+                                    child: LiquidGlassLens(
+                                      style: opaqueCardStyle,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          // Run edit action
+                                        },
+                                        icon: Icon(Icons.edit, size: 30),
+                                      ),
                                     ),
                                   ),
                                   subtitle: Row(
@@ -792,6 +840,49 @@ class _PlaylistState extends State<Playlist> {
                                             ),
                                             SizedBox(height: 10),
                                             TextField(
+                                              controller:
+                                                  locationFieldController,
+                                              readOnly: true,
+                                              onTap: () async {
+                                                final location =
+                                                    await showEventLocationPicker(
+                                                      context,
+                                                    );
+                                                if (!mounted ||
+                                                    location == null) {
+                                                  return;
+                                                }
+                                                locationFieldController.text =
+                                                    location;
+                                              },
+                                              decoration: InputDecoration(
+                                                hintText: "Location",
+                                                suffixIcon: Icon(
+                                                  Icons.location_on,
+                                                  color: Colors.black54,
+                                                ),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  borderSide: BorderSide(
+                                                    color: Colors.black
+                                                        .withAlpha(60),
+                                                  ),
+                                                ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
+                                                      borderSide: BorderSide(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            TextField(
                                               controller: notesTextController,
                                               maxLines: 6,
                                               minLines: 3,
@@ -910,6 +1001,15 @@ class _PlaylistState extends State<Playlist> {
                                                       ? null
                                                       : notesTextController.text
                                                             .trim(),
+                                                  location:
+                                                      locationFieldController
+                                                          .text
+                                                          .trim()
+                                                          .isEmpty
+                                                      ? null
+                                                      : locationFieldController
+                                                            .text
+                                                            .trim(),
                                                   startTime: _dateTimeFor(
                                                     eventDate!,
                                                     startTime!,
@@ -928,6 +1028,7 @@ class _PlaylistState extends State<Playlist> {
                                                 _selectedStartTime = null;
                                                 _selectedEndTime = null;
                                                 selectedEventIcon = Icons.build;
+                                                locationFieldController.clear();
                                                 _refreshEvents();
                                                 navigator.pop();
 

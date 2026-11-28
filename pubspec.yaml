@@ -40,6 +40,10 @@ dependencies:
   app_links: ^7.2.2
   liquid_glass_easy: ^5.2.0
   intl: ^0.20.3
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+  geolocator: ^14.1.2
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -51,12 +55,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  http: ^1.6.0
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

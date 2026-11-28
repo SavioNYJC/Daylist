@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 class FloatingListItem extends StatefulWidget {
-  FloatingListItem({
+  const FloatingListItem({
     super.key,
     required this.child,
     required this.floatingChild,
@@ -12,7 +12,7 @@ class FloatingListItem extends StatefulWidget {
   final Widget child;
   final Widget? floatingChild;
   final Widget? bottomMenu;
-  ValueChanged<bool>? onFloatingChanged;
+  final ValueChanged<bool>? onFloatingChanged;
 
   @override
   State<FloatingListItem> createState() => FloatingListItemState();
